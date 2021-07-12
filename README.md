@@ -37,3 +37,13 @@ RUN cd /home/${USERNAME}/edk2 &&  ln -s /workspaces/mikanos/MikanLoaderPkg ./
 RUN cd /home/${USERNAME}/edk2 && rm -rf ./Conf && ln -s /workspaces/mikanos/edk2/Conf ./
 
 ```
+
+#### 2.5 メモリマップの取得(osbook_day02b)
+
+オリジナルのタグ [osbook_day02b](https://github.com/uchan-nos/mikanos/tree/osbook_day02b) のコミットを参考に、メモリマップを取得してファイルに書き出す実装を `Main.c` に書いていく。
+
+注意点として、 `Main.c` の他に `Loader.inf` で使用するProtocolを追記しないとビルドに失敗するぞ。
+[get memory map without error checking · uchan\-nos/mikanos@a695aa4](https://github.com/uchan-nos/mikanos/commit/a695aa4c2b43f1edd45cbca6e05b0bb3da72bf58#diff-42d8ec170a53cc42f50f259e3420e36b4ea931bc7b0ba917e3f122bf7e95d033R24-R26)
+
+あとは、 書籍の手順通りに `run_qumu.sh` でビルドした `Build/MikanLoaderX64/DEBUG_CLANG38/X64/Loader.efi` を起動して、イメージにファイルが書き込まれているか確認。
+
