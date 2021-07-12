@@ -22,3 +22,5 @@ VSCodeとDockerで環境構築余裕でした。先人の知恵ありがてえ�
 書籍の内容を確認しながら、オリジナルのMikanOSのリポジトリのコミットを写経していくので、dev-container内にオリジナルのMikanOSをcloneしておく。
 また、diff-highlightやtigなどgit周りを便利に使えるようにdev-containerのDockerfileに追記した
 
+vscodeで `Uefi.h` などから補完が効くように、 `.vscode/c_cpp_properties` に `${HOME}/edk2/MdePkg/Include/**` にパスを通すように設定しておくよ。
+
