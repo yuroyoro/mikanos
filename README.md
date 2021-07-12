@@ -24,3 +24,16 @@ VSCodeとDockerで環境構築余裕でした。先人の知恵ありがてえ�
 
 vscodeで `Uefi.h` などから補完が効くように、 `.vscode/c_cpp_properties` に `${HOME}/edk2/MdePkg/Include/**` にパスを通すように設定しておくよ。
 
+#### 2.2 EDK II でハローワールド(osbook_day02a)
+
+手順通りに進めれば問題ないが、 `$HOME/edk2` に作る `MikanLoaderPkg` へのSymlinkはコンテナ起動ごとに削除されてしまうので、Dockerfile内で先に作って置くことにした。
+また、 `edk2/Conf` も消えてしまうので、リポジトリに入れておいてこれもSymlinkすることにした
+
+```Dockerfile
+# create a symlink to MikanLoaderPkg in my repository
+RUN cd /home/${USERNAME}/edk2 &&  ln -s /workspaces/mikanos/MikanLoaderPkg ./
+
+# create a symlink to my Conf/
+RUN cd /home/${USERNAME}/edk2 && rm -rf ./Conf && ln -s /workspaces/mikanos/edk2/Conf ./
+
+```

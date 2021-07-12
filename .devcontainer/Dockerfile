@@ -20,7 +20,12 @@ WORKDIR /home/${USERNAME}
 RUN git clone https://github.com/uchan-nos/mikanos.git
 
 # create a symlink to MikanLoaderPkg in my repository
-RUN cd /home/${USERNAME}/edk2 &&  ln -s /workspaces/mikanos/MikanLoaderPkg ./
+RUN cd /home/${USERNAME}/edk2 && ln -s /workspaces/mikanos/MikanLoaderPkg ./
+
+# create a symlink to my Conf/
+RUN cd /home/${USERNAME}/edk2 && rm -rf ./Conf && ln -s /workspaces/mikanos/edk2/Conf ./
+
+ENV PATH $PATH:/home/${USERNAME}/osbook/devenv/
 
 # switch back to root
 USER root
