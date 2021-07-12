@@ -19,5 +19,9 @@ WORKDIR /home/${USERNAME}
 # clone original mikanos into $HOME
 RUN git clone https://github.com/uchan-nos/mikanos.git
 
+# create a symlink to MikanLoaderPkg in my repository
+RUN cd /home/${USERNAME}/edk2 &&  ln -s /workspaces/mikanos/MikanLoaderPkg ./
+
 # switch back to root
 USER root
+
