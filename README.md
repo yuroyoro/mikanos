@@ -86,3 +86,9 @@ Loader.infに `gEfiFileInfoGuid` を追記するのを忘れないように。
 #### 4.1 make入門(osbook_day04a)
 
 ようやくMakefile。ただしkernelのビルドのみ。buildenv.shとかもまとめて設定するようにあとでやろう
+
+#### 4.2 ピクセルを自在に描く(osbook_day04b)
+
+`main.cpp` から `frame_buffer_config.hpp` をincludeしているので、include pathを通す必要がある……と思ったら、`MikanLoaderPkg` と `kernel` でsymlinkしていた。
+
+
