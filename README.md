@@ -80,3 +80,9 @@ Loader.infに `gEfiFileInfoGuid` を追記するのを忘れないように。
 #### 3.6 エラー処理をしよう(osbook_day03d)
 
 いままでは `UefiMain` でエラーのときは gotoで飛ばすようにしていたが、 `Halt` 関数を導入した
+
+### 第4章 ピクセル描画とmake入門
+
+#### 4.1 make入門(osbook_day04a)
+
+ようやくMakefile。ただしkernelのビルドのみ。buildenv.shとかもまとめて設定するようにあとでやろう

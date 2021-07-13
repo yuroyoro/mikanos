@@ -4,3 +4,5 @@
 !/edk2/Conf/BuildEnv.sh
 !/edk2/Conf/target.txt
 !/edk2/Conf/tools_def.txt
+/kernel/kernel.elf
+/kernel/*.o
