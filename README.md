@@ -95,7 +95,8 @@ Loader.infに `gEfiFileInfoGuid` を追記するのを忘れないように。
 
 c++むずかしいです
 
+#### 4.5 ローダを改良する(osbook_day04d)
 
-
+ELF形式のローダーの話。例によって `elf.hpp` はsymlinkしておく。
 
 

@@ -3,12 +3,14 @@
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/PrintLib.h>
 #include <Library/MemoryAllocationLib.h>
+#include <Library/BaseMemoryLib.h>
 #include <Protocol/LoadedImage.h>
 #include <Protocol/SimpleFileSystem.h>
 #include <Protocol/DiskIo2.h>
 #include <Protocol/BlockIo.h>
 #include <Guid/FileInfo.h>
 #include <frame_buffer_config.hpp>
+#include <elf.hpp>
 
 struct MemoryMap
 {
@@ -165,6 +167,42 @@ EFI_STATUS OpenRootDir(EFI_HANDLE image_handle, EFI_FILE_PROTOCOL **root)
 	return EFI_SUCCESS;
 }
 
+void CalcLoadAddressRange(Elf64_Ehdr *ehdr, UINT64 *first, UINT64 *last)
+{
+	Elf64_Phdr *phdr = (Elf64_Phdr *)((UINT64)ehdr + ehdr->e_phoff);
+
+	*first = MAX_UINT64;
+	*last = 0;
+
+	for (Elf64_Half i = 0; i < ehdr->e_phnum; ++i) // read each program header
+	{
+		if (phdr[i].p_type != PT_LOAD)
+			continue;
+
+		*first = MIN(*first, phdr[i].p_vaddr);
+		*last = MAX(*last, phdr[i].p_vaddr + phdr[i].p_memsz);
+	}
+}
+
+void CopyLoadSegments(Elf64_Ehdr *ehdr)
+{
+	Elf64_Phdr *phdr = (Elf64_Phdr *)((UINT64)ehdr + ehdr->e_phoff);
+
+	for (Elf64_Half i = 0; i < ehdr->e_phnum; ++i) // read each program heder
+	{
+		if (phdr[i].p_type != PT_LOAD)
+			continue;
+
+		// copy segments
+		UINT64 segm_in_file = (UINT64)ehdr + phdr[i].p_offset;
+		CopyMem((VOID *)phdr[i].p_vaddr, (VOID *)segm_in_file, phdr[i].p_filesz);
+
+		// fill zero to remain bytes
+		UINTN remain_bytes = phdr->p_memsz - phdr->p_filesz;
+		SetMem((VOID *)(phdr[i].p_vaddr + phdr[i].p_filesz), remain_bytes, 0);
+	}
+}
+
 EFI_STATUS LoadKernel(EFI_FILE_PROTOCOL *root_dir, EFI_PHYSICAL_ADDRESS kernel_base_addr)
 {
 	EFI_STATUS status;
@@ -197,24 +235,47 @@ EFI_STATUS LoadKernel(EFI_FILE_PROTOCOL *root_dir, EFI_PHYSICAL_ADDRESS kernel_b
 	EFI_FILE_INFO *file_info = (EFI_FILE_INFO *)file_info_buffer;
 	UINTN kernel_file_size = file_info->FileSize;
 
+	// allocate temporary buffer for read kernel program headers
+	VOID *kernel_buffer;
+	status = gBS->AllocatePool(EfiLoaderData, kernel_file_size, &kernel_buffer);
+	if (EFI_ERROR(status))
+	{
+		Print(L"Memory pool allocation failed: %r\n", status);
+		return status;
+	}
+
+	status = kernel_file->Read(kernel_file, &kernel_file_size, kernel_buffer);
+	if (EFI_ERROR(status))
+	{
+		Print(L"Failed to load kernel.elf to temporary memory: kernel_buffer = %08lx, kernel_file_size = %lu: %r\n", kernel_buffer, kernel_file_size, status);
+		return status;
+	}
+
+	Elf64_Ehdr *kernel_ehdr = (Elf64_Ehdr *)kernel_buffer;
+	UINT64 kernel_first_addr, kernel_last_addr;
+	CalcLoadAddressRange(kernel_ehdr, &kernel_first_addr, &kernel_last_addr);
+
+	UINTN num_pages = (kernel_last_addr - kernel_first_addr + 0xfff) / 0x1000;
+
 	// read kernel into base_addr
 	status = gBS->AllocatePages(
 		AllocateAddress, EfiLoaderData,
-		(kernel_file_size + 0xfff) / 0x1000, &kernel_base_addr);
+		num_pages, &kernel_first_addr);
 	if (EFI_ERROR(status))
 	{
-		Print(L"Memory allocaion Failed: %r\n", status);
+		Print(L"Memory allocation Failed: %r\n", status);
 		return status;
 	}
 
-	status = kernel_file->Read(kernel_file, &kernel_file_size, (VOID *)kernel_base_addr);
+	CopyLoadSegments(kernel_ehdr);
+	Print(L"Kernel: 0x%0lx - 0x%0lx\n", kernel_first_addr, kernel_last_addr);
+
+	status = gBS->FreePool(kernel_buffer);
 	if (EFI_ERROR(status))
 	{
-		Print(L"Failed to load kernel.elf to memory: kernel_base_addr = %08lx, kernel_file_size = %lu: %r\n", kernel_base_addr, kernel_file_size, status);
+		Print(L"failed to free pool: %r\n", status);
 		return status;
 	}
-
-	Print(L"Loaded Kernel : kernel_base_addr = %08lx, kernel_file_size = %lu\n", kernel_base_addr, kernel_file_size);
 
 	return EFI_SUCCESS;
 }
