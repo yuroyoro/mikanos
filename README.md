@@ -77,3 +77,6 @@ Loader.infに `gEfiFileInfoGuid` を追記するのを忘れないように。
 `buildenv.sh` を書き換えるか、bashを使ってコンパイル/リンクして対処する。
  `buildenv.sh` はコンテナに焼き込んであるので起動時に初期化されてしまう。bash使うのが無難。というかはよMakefile書きたい
 
+#### 3.6 エラー処理をしよう(osbook_day03d)
+
+いままでは `UefiMain` でエラーのときは gotoで飛ばすようにしていたが、 `Halt` 関数を導入した
