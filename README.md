@@ -69,3 +69,11 @@ Loader.infに `gEfiFileInfoGuid` を追記するのを忘れないように。
 #### 3.4 ブートローダからピクセルを描く(osbook_day03b)
 
 特になし
+
+#### 3.5 カーネルからピクセルを描く(osbook_day03c)
+
+`$HOME/osbook/devenv/buildenv.sh` で `$CPPFLAGS` を設定しているが、zshの場合はクォートで文字列扱いになるので、 `clang++ $CPPFLAGS  ...` は `$CPPFLAGS` の展開に失敗する。
+
+`buildenv.sh` を書き換えるか、bashを使ってコンパイル/リンクして対処する。
+ `buildenv.sh` はコンテナに焼き込んであるので起動時に初期化されてしまう。bash使うのが無難。というかはよMakefile書きたい
+
