@@ -47,3 +47,19 @@ RUN cd /home/${USERNAME}/edk2 && rm -rf ./Conf && ln -s /workspaces/mikanos/edk2
 
 あとは、 書籍の手順通りに `run_qumu.sh` でビルドした `Build/MikanLoaderX64/DEBUG_CLANG38/X64/Loader.efi` を起動して、イメージにファイルが書き込まれているか確認。
 
+### 第3章 画面表示の練習とブートローダ
+
+#### 3.3 初めてのカーネル(osbook_day03a)
+
+[osbook_day03a](https://github.com/uchan-nos/mikanos/tree/osbook_day03a) を見ながら写経。
+
+まずは `kernel/main.cpp` を作成してコンパイル/リンクする。ちょくでclang叩くのがダルいのでMakefile書こうと思ったけど、次の章でやるのね
+あとはブートローダーがカーネルを読むように修正する。むしろこっちがメインの内容。
+オリジナルでは `UefiMain` に処理を書いていたけど、適当に関数に分けて書いてみた
+
+Loader.infに `gEfiFileInfoGuid` を追記するのを忘れないように。
+
+```
+[Guids]
+  gEfiFileInfoGuid
+```
