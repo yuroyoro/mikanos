@@ -91,4 +91,11 @@ Loader.infに `gEfiFileInfoGuid` を追記するのを忘れないように。
 
 `main.cpp` から `frame_buffer_config.hpp` をincludeしているので、include pathを通す必要がある……と思ったら、`MikanLoaderPkg` と `kernel` でsymlinkしていた。
 
+#### 4.3 C++ の機能を使って書き直す(osbook_day04c)
+
+c++むずかしいです
+
+
+
+
 
