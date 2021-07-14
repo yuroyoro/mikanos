@@ -9,7 +9,7 @@ KERNEL     = kernel/kernel.elf
 
 
 .PHONY: all
-all: $(LOADER) $(KERNEL)
+all: loader kernel
 
 .PHONY: kernel
 kernel:

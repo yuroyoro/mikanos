@@ -55,8 +55,11 @@ extern "C" void KernelMain(
 		}
 	}
 
-	WriteAscii(*pixel_writer, 50, 50, 'A', {0, 0, 0});
-	WriteAscii(*pixel_writer, 58, 50, 'A', {0, 0, 0});
+	int i = 0;
+	for (char c = '!'; c <= '~'; ++c, ++i)
+	{
+		WriteAscii(*pixel_writer, 8 * i, 50, c, {0, 0, 0});
+	}
 
 	while (1)
 	{

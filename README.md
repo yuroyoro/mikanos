@@ -111,4 +111,11 @@ ELF形式のローダーの話。例によって `elf.hpp` はsymlinkしてお�
 
 #### 5.2 分割コンパイル(osbook_day05b)
 
+`kernel/main.cpp` を分割するだけ。
+
+
+#### 5.3 フォントを増やそう(osbook_day05c)
+
+フォントデータをバイナリに埋め込むようにする。
+フォントデータの `kernel/hankaku.txt` とそこからベタバイナリを生成する `tools/makefont.py` は流石に写経するのはダルいのでコピーしてくる。
 

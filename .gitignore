@@ -7,4 +7,5 @@
 /kernel/kernel.elf
 /kernel/*.o
 /kernel/*.d
+/kernel/*.bin
 disk.img
