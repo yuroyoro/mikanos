@@ -1,8 +1,20 @@
 TARGET = kernel.elf
 OBJS = main.o
 
+# set build env, copied from ~/osbook/devenv/buildenv.sh
+EDK2_DIR   = $(HOME)/edk2
+OSBOOK_DIR = $(HOME)/osbook
+X86_64_ELF_DIR = $(OSBOOK_DIR)/devenv/x86_64-elf
+
+CPPFLAGS = -I$(X86_64_ELF_DIR)/include/c++/v1 -I$(X86_64_ELF_DIR)/include \
+           -I$(X86_64_ELF_DIR)/include/freetype2 \
+		   -I$(EDK2_DIR)/MdePkg/Include -I$(EDK2_DIR)/MdePkg/Include/X64 \
+		   -nostdlibinc -D__ELF__ -D_LDBL_EQ_DBL -D_GNU_SOURCE -D_POSIX_TIMERS \
+		   -DEFIAPI='__attribute__((ms_abi))'
+
 CXXFLAGS += -O2 -Wall -g --target=x86_64-elf -ffreestanding -mno-red-zone \
             -fno-exceptions -fno-rtti -std=c++17
+LDFLAGS = -L$(OSBOOK_DIR)/lib
 LDFLAGS += --entry KernelMain -z norelro --image-base 0x100000 --static
 
 .PHONY: all
