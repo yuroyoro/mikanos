@@ -6,3 +6,4 @@
 !/edk2/Conf/tools_def.txt
 /kernel/kernel.elf
 /kernel/*.o
+disk.img
