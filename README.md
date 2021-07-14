@@ -1,6 +1,6 @@
 # MikanOS
-
-[ゼロからのOS自作入門](https://zero.osdev.jp/) を写経するリポジトリ。
+デスクトップとマウスカーソルの描画を実装する。
+`FillRectangle` と `DrawRectangle` は `PixelWriterのメンバー[ゼロからのOS自作入門](https://zero.osdev.jp/) を写経するリポジトリ。
 
 ## Memo
 
@@ -133,3 +133,10 @@ Newlibで必要なカーネルの機能を `newlib_support.c`  に書いてい�
 
 printk関数の実装。特に問題はなかった。
 そういえば配列宣言を利用してグローバル変数用のメモリ確保するやつはNand2Tetrisでもやったっけ(あちらはアセンブリだったけど)
+
+### 第6章 マウス入力とPCI
+
+#### 6.1 マウスカーソル(osbook_day06a)
+
+デスクトップとマウスカーソルの描画を実装する。
+`FillRectangle` と `DrawRectangle` は `PixelWriter` のメンバー関数にしてみた。
