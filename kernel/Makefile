@@ -1,5 +1,6 @@
 TARGET = kernel.elf
-OBJS = main.o
+OBJS = main.o graphics.o font.o
+DEPENDS = $(join $(dir $(OBJS)), $(addprefix ., $(notdir $(OBJS:.o=.d))))
 
 # set build env, copied from ~/osbook/devenv/buildenv.sh
 EDK2_DIR   = $(HOME)/edk2
@@ -22,10 +23,21 @@ all: $(TARGET)
 
 .PHONY: clean
 clean:
-	rm -rf *.o $(TARGET)
+	rm -rf *.o .*.d $(TARGET)
 
 kernel.elf: $(OBJS) Makefile
 	ld.lld $(LDFLAGS) -o kernel.elf $(OBJS)
 
 %.o: %.cpp Makefile
 	clang++ $(CPPFLAGS) $(CXXFLAGS) -c $<
+
+.%.d: %.cpp
+	clang++ $(CPPFLAGS) $(CXXFLAGS) -MM $< > $@
+	$(eval OBJ = $(<:.cpp=.o))
+	sed --in-place 's|$(notdir $(OBJ))|$(OBJ)|' $@
+
+.PHONY: depends
+depends:
+	$(MAKE) $(DEPENDS)
+
+-include $(DEPENDS)
