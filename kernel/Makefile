@@ -1,5 +1,5 @@
 TARGET = kernel.elf
-OBJS = main.o graphics.o font.o hankaku.o newlib_support.o
+OBJS = main.o graphics.o font.o hankaku.o newlib_support.o console.o
 DEPENDS = $(join $(dir $(OBJS)), $(addprefix ., $(notdir $(OBJS:.o=.d))))
 
 # set build env, copied from ~/osbook/devenv/buildenv.sh
