@@ -140,3 +140,14 @@ printk関数の実装。特に問題はなかった。
 
 デスクトップとマウスカーソルの描画を実装する。
 `FillRectangle` と `DrawRectangle` は `PixelWriter` のメンバー関数にしてみた。
+
+#### 6.3 PCIデバイスの探索(osbook_day06b)
+
+ひたすら `pci.cpp` などを写経していくぞ。
+
+`MakeAddress` の実装で、 指定位置までビットシフトしてor撮ってるけど、 `bus` や `device` が上限超えてたら範囲外のbit立ってしまうバグがあるな。
+こういうのはassertとかで潰すのかな。カーネルだとどうすればいいんだろうな?
+
+`main.cpp` から 配置newで定義した `void* operator new(size_t size, void* buf) ` の定義が消えている。
+`~/osbook/devenv/x86_64-elf/include/c++/v1/new` にあるので不要ということだと思うけど、どこからこれがincludeされるようになったかはわからん( ꒪⌓꒪)
+
