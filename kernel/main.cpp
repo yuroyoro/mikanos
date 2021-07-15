@@ -13,6 +13,7 @@
 #include "graphics.hpp"
 #include "console.hpp"
 #include "pci.hpp"
+#include "mouse.hpp"
 
 void operator delete(void *obj) noexcept
 {
@@ -24,40 +25,14 @@ const PixelColor kDesktopTaskBarButtonBGColor = {1, 8, 17};
 const PixelColor kDesktopTaskBarButtonFGColor = {160, 160, 160};
 const PixelColor kDesktopTaskBarColor = {80, 80, 80};
 
-const int kMouseCursorWidth = 15;
-const int kMouseCursorHeight = 24;
-const char mouse_cursor_shpae[kMouseCursorHeight][kMouseCursorWidth + 1] = {
-	"@              ",
-	"@@             ",
-	"@.@            ",
-	"@..@           ",
-	"@...@          ",
-	"@....@         ",
-	"@.....@        ",
-	"@......@       ",
-	"@.......@      ",
-	"@........@     ",
-	"@.........@    ",
-	"@..........@   ",
-	"@...........@  ",
-	"@............@ ",
-	"@......@@@@@@@@",
-	"@......@       ",
-	"@....@@.@      ",
-	"@...@ @.@      ",
-	"@..@   @.@     ",
-	"@.@    @.@     ",
-	"@@      @.@    ",
-	"@       @.@    ",
-	"         @.@   ",
-	"         @@@   ",
-};
-
 char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixleWriter)];
 PixelWriter *pixel_writer;
 
 char console_buf[sizeof(Console)];
 Console *console;
+
+char mouse_cursor_buf[sizeof(MouseCursor)];
+MouseCursor *mouse_cursor;
 
 int printk(const char *format, ...)
 {
@@ -117,20 +92,8 @@ extern "C" void KernelMain(
 	printk("Welcom to MikanOS!\n");
 
 	// draw mouse cursor
-	for (int dy = 0; dy < kMouseCursorHeight; ++dy)
-	{
-		for (int dx = 0; dx < kMouseCursorWidth; ++dx)
-		{
-			if (mouse_cursor_shpae[dy][dx] == '@')
-			{
-				pixel_writer->Write(200 + dx, 100 + dy, kColorBlack);
-			}
-			else if (mouse_cursor_shpae[dy][dx] == '.')
-			{
-				pixel_writer->Write(200 + dx, 100 + dy, kColorWhite);
-			}
-		}
-	}
+	mouse_cursor = new (mouse_cursor_buf) MouseCursor{
+		pixel_writer, kDesktopBGColor, {300, 200}};
 
 	// scan PCI devices
 	auto err = pci::ScanAllBus();
