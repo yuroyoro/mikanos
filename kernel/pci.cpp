@@ -1,3 +1,9 @@
+/**
+ * @file pci.cpp
+ *
+ * PCI バス制御のプログラムを集めたファイル．
+ */
+
 #include "pci.hpp"
 #include "asmfunc.h"
 
@@ -25,12 +31,12 @@ namespace
 
 		if (num_device == devices.size())
 		{
-			return Error::kFull;
+			return MAKE_ERROR(Error::kFull);
 		}
 
 		devices[num_device] = Device{bus, device, function, header_type};
 		++num_device;
-		return Error::kSuccess;
+		return MAKE_ERROR(Error::kSuccess);
 	}
 
 	Error ScanBus(uint8_t bus);
@@ -60,7 +66,7 @@ namespace
 			return ScanBus(secondary_bus);
 		}
 
-		return Error::kSuccess;
+		return MAKE_ERROR(Error::kSuccess);
 	}
 
 	/**  指定のデバイス番号の各ファンクションをスキャンする．
@@ -76,7 +82,7 @@ namespace
 
 		if (IsSingleFunctionDevice(ReadHeaderType(bus, device, 0)))
 		{
-			return Error::kSuccess;
+			return MAKE_ERROR(Error::kSuccess);
 		}
 
 		// scan funciton 1-8
@@ -93,7 +99,7 @@ namespace
 			}
 		}
 
-		return Error::kSuccess;
+		return MAKE_ERROR(Error::kSuccess);
 	}
 
 	/**  指定のバス番号の各デバイスをスキャンする．
@@ -115,7 +121,7 @@ namespace
 			}
 		}
 
-		return Error::kSuccess;
+		return MAKE_ERROR(Error::kSuccess);
 	}
 }
 
@@ -201,6 +207,6 @@ namespace pci
 			}
 		}
 
-		return Error::kSuccess;
+		return MAKE_ERROR(Error::kSuccess);
 	}
 }

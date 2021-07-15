@@ -1,3 +1,8 @@
+/**
+ * @file pci.hpp
+ *
+ * PCI バス制御のプログラムを集めたファイル．
+ */
 #pragma once
 
 #include <cstdint>
