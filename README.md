@@ -117,7 +117,7 @@ ELF形式のローダーの話。例によって `elf.hpp` はsymlinkしてお�
 #### 5.3 フォントを増やそう(osbook_day05c)
 
 フォントデータをバイナリに埋め込むようにする。
-フォントデータの `kernel/hankaku.txt` とそこからベタバイナリを生成する `tools/makefont.py` は流石に写経するのはダルいのでコピーしてくる。
+フォントデータの `kernel/hankaku.txt` とそこからベタバイナリを生成する `tools/makefont.py` は流石に写経するのはダルいのでコピーaだけではコンパイルが通らない。 `error.hpp`
 
 #### 5.4 文字列描画とsprintf()(osbook_day05d)
 
@@ -150,4 +150,64 @@ printk関数の実装。特に問題はなかった。
 
 `main.cpp` から 配置newで定義した `void* operator new(size_t size, void* buf) ` の定義が消えている。
 `~/osbook/devenv/x86_64-elf/include/c++/v1/new` にあるので不要ということだと思うけど、どこからこれがincludeされるようになったかはわからん( ꒪⌓꒪)
+
+#### 6.4 ポーリングでマウス入力(osbook_day06c)
+
+いよいよマウスを動かす実装をするぞ。まず USBホストコントローラドライバとマウスのクラスドライバを `~/mikanos/kernel/usb` からコピーしてくる。
+中身をちょっと覗いてみたけど、理解するのは諦めた。
+単にコピーしてくるだけではコンパイルが通らない。
+
+まず、 `Error` 型の定義が変わっている(ファイル名と行数を持つようになった)ので `error.hpp` を修正していく。
+ファイル名と行数を含めるためのマクロ `MAKE_ERROR` も定義する。それに伴い、 `Error` を使っている場所をマクロに置き換えていく。
+
+次に、 `Log` 関数を定義してカーネルからログ出力できるようにする。
+
+さらに、 メモリマップドなレジスタ操作をするための型を `usr` 配下で参照しているので、 `kernel/register.hpp` で色々と型を追加する。
+中はテンプレートを駆使して指定した型のサイズでレジスタに読み書きできるようにした `MemMapRegister` と 配列をイテレーションする `ArrayWrapper` が定義されている。
+
+必要なシステムコールが増えたのか、 `newlib_support` に `_exit` `getpid` `kill` を追加する。
+
+まだコンパイルが通らない。
+
+```
+ld.lld: error: undefined symbol: std::get_new_handler()
+>>> referenced by new.cpp
+>>>               new.cpp.o:(operator new(unsigned long)) in archive /home/vscode/osbook/devenv/x86_64-elf/lib/libc++.a
+
+ld.lld: error: undefined symbol: posix_memalign
+>>> referenced by new.cpp
+>>>               new.cpp.o:(operator new(unsigned long, std::align_val_t)) in archive /home/vscode/osbook/devenv/x86_64-elf/lib/libc++.a
+
+ld.lld: error: undefined symbol: std::get_new_handler()
+>>> referenced by new.cpp
+>>>               new.cpp.o:(operator new(unsigned long, std::align_val_t)) in archive /home/vscode/osbook/devenv/x86_64-elf/lib/libc++.a
+
+ld.lld: error: undefined symbol: posix_memalign
+>>> referenced by new.cpp
+>>>               new.cpp.o:(operator new(unsigned long, std::align_val_t)) in archive /home/vscode/osbook/devenv/x86_64-elf/lib/libc++.a
+```
+
+なんかlibc++がどうの言っており、オリジナルのコミットを見ると [link libc\+\+ statically · uchan\-nos/mikanos@a92f5ba](https://github.com/uchan-nos/mikanos/commit/a92f5ba79268b10a2a674e15baf690e1788d6b93) とあるので、 `newlib_support` と同じノリでlibc++の機能を追加していくっぽい。
+
+```
+ld.lld: error: undefined symbol: __cxa_pure_virtual
+>>> referenced by hid.cpp
+>>>               usb/classdriver/hid.o:(vtable for usb::HIDBaseDriver)
+```
+
+あとなんか、 `__cxa_pure_virtual` というしんぼるが ね―よってエラーも出ていたので、 `main.cpp` に追加する。
+このあたりの話っぽい。
+
+[自作OSでC\+\+を使う方法 \- Kludge Factory](https://tyfkda.github.io/blog/2014/03/10/use-cpp.html)
+
+ここまでやって、ようやく取り込んだusbドライバがビルドできるようになった。
+
+まず、 マウスの描画処理を `MouseCursor` クラスに実装する。 `mouse.hpp` と `mouse.cpp` を追加して `main.cpp` から使うようにする。
+また、`pci.hpp` と `pci.cpp` でクラスコード周りやPCI コンフィギュレーション空間のBARを読み書きする実装を足していく。
+
+`error.hpp` はいわゆるEitherだよな。mapとか色々と足したくなる。
+
+あとは、 `main.cpp` にxHCの初期化やマウスイベントを受け取る関数の設定をして、ループの中で `ProcessEvent` を呼び出してxHCに溜まったイベントを処理するようにする。
+いわゆるイベントループ方式。
+
 
