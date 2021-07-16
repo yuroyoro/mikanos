@@ -20,6 +20,7 @@
 #include "logger.hpp"
 #include "mouse.hpp"
 #include "pci.hpp"
+#include "queue.hpp"
 
 #include "usb/classdriver/mouse.hpp"
 #include "usb/device.hpp"
@@ -69,15 +70,17 @@ void SwitchEhci2Xhci(const pci::Device& xhc_dev) {
 
 usb::xhci::Controller* xhc;
 
+struct Message {
+    enum Type {
+        kInterruptXHCI,
+    } type;
+};
+
+ArrayQueue<Message>* main_queue;
+
 /* XHCI Interrupt handler */
 __attribute__((interrupt)) void IntHandlerXHCI(InterruptFrame* frame) {
-    while (xhc->PrimaryEventRing()->HasFront()) {
-        if (auto err = ProcessEvent(*xhc)) {
-            Log(kError, "Error while ProcessEvent: %s at %s:%d\n",
-                err.Name(), err.File(), err.Line());
-        }
-    }
-
+    main_queue->Push(Message{Message::kInterruptXHCI});
     NotifyEndOfInterrupt();
 }
 
@@ -141,6 +144,11 @@ extern "C" void KernelMain(
     // draw mouse cursor
     mouse_cursor = new (mouse_cursor_buf) MouseCursor{
         pixel_writer, kDesktopBGColor, {300, 200}};
+
+    // initialize message queue
+    std::array<Message, 32> main_queue_data;
+    ArrayQueue<Message> main_queue{main_queue_data};
+    ::main_queue = &main_queue;
 
     // scan PCI devices
     auto err = pci::ScanAllBus();
@@ -222,6 +230,31 @@ extern "C" void KernelMain(
                     err.Name(), err.File(), err.Line());
                 continue;
             }
+        }
+    }
+
+    // event loop
+    while (true) {
+        __asm__("cli");
+
+        if (main_queue.Count() == 0) { // no event in queue
+            __asm__("sti\nhlt");
+            continue;
+        }
+
+        Message msg = main_queue.Front();
+
+        switch (msg.type) {
+        case Message::kInterruptXHCI:
+            while (xhc.PrimaryEventRing()->HasFront()) {
+                if (auto err = ProcessEvent(xhc)) {
+                    Log(kError, "Error while ProcessEvent: %s at %s:%d\n",
+                        err.Name(), err.File(), err.Line());
+                }
+            }
+            break;
+        default:
+            Log(kError, "Unknown message type: %d\n", msg.type);
         }
     }
 
