@@ -8,6 +8,9 @@
 #include <cstddef>
 #include <cstdio>
 
+#include <numeric>
+#include <vector>
+
 #include "frame_buffer_config.hpp"
 #include "font.hpp"
 #include "graphics.hpp"
@@ -15,6 +18,8 @@
 #include "pci.hpp"
 #include "mouse.hpp"
 #include "logger.hpp"
+#include "interrupt.hpp"
+#include "asmfunc.h"
 
 #include "usb/memory.hpp"
 #include "usb/device.hpp"
@@ -22,15 +27,11 @@
 #include "usb/xhci/xhci.hpp"
 #include "usb/xhci/trb.hpp"
 
-void operator delete(void *obj) noexcept
-{
-}
-
 const PixelColor kDesktopBGColor{45, 118, 237};
 const PixelColor kDesktopFGColor = kColorWhite;
-const PixelColor kDesktopTaskBarButtonBGColor = {1, 8, 17};
-const PixelColor kDesktopTaskBarButtonFGColor = {160, 160, 160};
-const PixelColor kDesktopTaskBarColor = {80, 80, 80};
+const PixelColor kDesktopStatusBarButtonBGColor = {1, 8, 17};
+const PixelColor kDesktopStatusBarButtonFGColor = {160, 160, 160};
+const PixelColor kDesktopStatusBarColor = {80, 80, 80};
 
 char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixleWriter)];
 PixelWriter *pixel_writer;
@@ -69,6 +70,23 @@ void SwitchEhci2Xhci(const pci::Device &xhc_dev)
 	uint32_t ehci2xhci_ports = pci::ReadConfReg(xhc_dev, 0xd4);	  // XUSB2PRM
 	pci::WriteConfReg(xhc_dev, 0xd0, ehci2xhci_ports);			  // USB3_PSSEN
 	Log(kDebug, "SwitchEhci2Xhci:SS = %02, xHCI = %02x\n", superspeeed_ports, ehci2xhci_ports);
+}
+
+usb::xhci::Controller *xhc;
+
+/* XHCI Interrupt handler */
+__attribute__((interrupt)) void IntHandlerXHCI(InterruptFrame *frame)
+{
+	while (xhc->PrimaryEventRing()->HasFront())
+	{
+		if (auto err = ProcessEvent(*xhc))
+		{
+			Log(kError, "Error while ProcessEvent: %s at %s:%d\n",
+				err.Name(), err.File(), err.Line());
+		}
+	}
+
+	NotifyEndOfInterrupt();
 }
 
 int printk(const char *format, ...)
@@ -113,17 +131,17 @@ extern "C" void KernelMain(
 	pixel_writer->FillRectangle(
 		{0, kFrameHeight - 50},
 		{kFrameWidth, 50},
-		kDesktopTaskBarColor);
+		kDesktopStatusBarColor);
 
 	pixel_writer->FillRectangle(
 		{0, kFrameHeight - 50},
 		{kFrameWidth / 5, 50},
-		kDesktopTaskBarButtonBGColor);
+		kDesktopStatusBarButtonBGColor);
 
 	pixel_writer->DrawRectangle(
 		{10, kFrameHeight - 40},
 		{30, 30},
-		kDesktopTaskBarButtonFGColor);
+		kDesktopStatusBarButtonFGColor);
 
 	console = new (console_buf) Console{
 		*pixel_writer, kDesktopFGColor, kDesktopBGColor};
@@ -169,6 +187,25 @@ extern "C" void KernelMain(
 			xhc_dev->bus, xhc_dev->device, xhc_dev->function);
 	}
 
+	// read code segement
+	const uint16_t cs = GetCS();
+	// set XHCI interupt handler
+	SetIDTEntry(
+		idt[InterruptVector::kXHCI],
+		MakeIDTAttr(DescriptorType::kInterruptGate, 0),
+		reinterpret_cast<uint64_t>(IntHandlerXHCI),
+		cs);
+
+	// setup IDT
+	LoadIDT(sizeof(idt) - 1, reinterpret_cast<uintptr_t>(&idt[0]));
+
+	// setup msi interrupt to xhc
+	const uint8_t bsp_local_apic_id = *reinterpret_cast<const uint32_t *>(0xfee00020) >> 24;
+	pci::ConfigureMSIFixedDestination(
+		*xhc_dev, bsp_local_apic_id,
+		pci::MSITriggerMode::kLevel, pci::MSIDeliveryMode::kFixed,
+		InterruptVector::kXHCI, 0);
+
 	const WithError<uint64_t> xhc_bar = pci::ReadBar(*xhc_dev, 0);
 	Log(kDebug, "ReadBar: %s\n", xhc_bar.error.Name());
 	const uint64_t xhc_mmio_base = xhc_bar.value & ~static_cast<uint64_t>(0xf);
@@ -187,6 +224,9 @@ extern "C" void KernelMain(
 	Log(kInfo, "xHC starting\n");
 	xhc.Run();
 
+	::xhc = &xhc;
+	__asm__("sti");
+
 	usb::HIDMouseDriver::default_observer = MouseObserver;
 
 	for (int i = 1; i <= xhc.MaxPorts(); i++)
@@ -202,15 +242,6 @@ extern "C" void KernelMain(
 					err.Name(), err.File(), err.Line());
 				continue;
 			}
-		}
-	}
-
-	while (1)
-	{
-		if (auto err = ProcessEvent(xhc))
-		{
-			Log(kError, "Error while ProcessEvent: %s at %s:%d\n",
-				err.Name(), err.File(), err.Line());
 		}
 	}
 

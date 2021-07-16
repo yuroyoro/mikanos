@@ -210,4 +210,42 @@ ld.lld: error: undefined symbol: __cxa_pure_virtual
 あとは、 `main.cpp` にxHCの初期化やマウスイベントを受け取る関数の設定をして、ループの中で `ProcessEvent` を呼び出してxHCに溜まったイベントを処理するようにする。
 いわゆるイベントループ方式。
 
+### 第7章 割り込みとFIFO
 
+割り込み〜。
+
+#### 7.1 割り込み(osbook_day07a)
+
+解説を読みながら、 `git diff osbook_day06c..osbook_day07a` でdiffに目を通していく。
+
+- `interupt.hpp` `interupt.cpp`
+  - 割り込み関連のデータ構造( `InterruptDescriptor` `InterruptDescriptorAttribute` )
+  - `SetIDTEntry` :  割り込みハンドラの設定
+  -  `NotifyEndOfInterrupt` : `0xfee000b0` へ書き込んで割り込み終了をcpuへ通知する
+- `pci.hpp` `pci.cpp` : MSI割り込みの設定を行うため、PCIコンフィグレーションのcapabilty headerを読み書きするための関数を実装している。正直よくわからないです( ꒪⌓꒪)
+- `asmfunc.h` `asmfunc.asm` :
+  - `GetCS` : コードセグメントを取得する。 csレジスタの値をaxに設定することでcsの値が戻り地になる(axはraxの下位16it)
+  - `LoadIDT` :  IDTの設定を行う。スタックトップにIDTのサイズとアドレスを書き込んで `lidt` を読んでIDTの位置をCPUに設定する
+- `main.cpp`
+  - `IntHandlerXHCI` : XCHIからの割り込みに対応する割り込みハンドラ。
+  - main内で `SetIDTEntry` で上記の `IntHandlerXHCI` のアドレス( `reinterpret_cast<uint64_t>(IntHandlerXHCI)` )をIDTに設定している
+  - `pci::ConfigureMSIFixedDestination` で割り込みを `InterruptVector::kXHCI` の割り込みベクタに発生させる設定を行っている。
+  - `__asm__("sti")` で割り込みフラグをCPUに設定している。割り込みフラグ設定でCPUが割り込みに応答するようになる。
+
+`kernel/usb/xhci/xhci.cpp` がひっそりと修正されているので注意
+
+```diff
+diff --git a/kernel/usb/xhci/xhci.cpp b/kernel/usb/xhci/xhci.cpp
+index 3b597d4..621f4c0 100644
+--- a/kernel/usb/xhci/xhci.cpp
++++ b/kernel/usb/xhci/xhci.cpp
+@@ -66,7 +66,7 @@ namespace {
+     }
+
+     int msb_index;
+-    asm("bsr %1, %0"
++    __asm__("bsr %1, %0"
+         : "=r"(msb_index) : "m"(value));
+     return msb_index;
+   }
+```
