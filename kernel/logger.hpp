@@ -1,11 +1,10 @@
 #pragma once
 
-enum LogLevel
-{
-	kError = 3,
-	kWarn = 4,
-	kInfo = 6,
-	kDebug = 7,
+enum LogLevel {
+    kError = 3,
+    kWarn = 4,
+    kInfo = 6,
+    kDebug = 7,
 };
 
 /** グローバルなログ優先度のしきい値を変更する．
@@ -23,4 +22,4 @@ void SetLogLevel(LogLevel level);
  * @param level  ログの優先度．しきい値以上の優先度のログのみが記録される．
  * @param format  書式文字列．printk と互換．
  */
-int Log(LogLevel level, const char *format, ...);
+int Log(LogLevel level, const char* format, ...);

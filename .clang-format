@@ -1,0 +1,32 @@
+BasedOnStyle: LLVM
+
+# 末尾のコメント文を整形
+AlignTrailingComments: true
+
+IndentWidth: 4
+
+# C++バージョン(C++03以前 or C++11以降)
+Standard: C++11
+
+# 連続する代入文の右辺を整形しない
+AlignConsecutiveAssignments: false
+
+# 連続する代入文左辺の変数名を整形
+AlignConsecutiveDeclarations: false
+
+# 1行の文字数制限。0なら制限なし
+ColumnLimit: 0
+
+# 1行で表示できるものは改行しない
+AllowShortBlocksOnASingleLine: true
+AllowShortLoopsOnASingleLine : true
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: true
+
+NamespaceIndentation: All
+
+# アクセス修飾子とclassのインデントを合わせる
+AccessModifierOffset: -4
+
+# ex. int *a -> int* a
+PointerAlignment: Left

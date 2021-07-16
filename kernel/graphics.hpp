@@ -3,58 +3,51 @@
 #include "frame_buffer_config.hpp"
 
 template <typename T>
-struct Vector2D
-{
-	T x, y;
+struct Vector2D {
+    T x, y;
 
-	template <typename U>
-	Vector2D<T> &operator+=(const Vector2D<U> &rhs)
-	{
-		x += rhs.x;
-		y += rhs.y;
-		return *this;
-	}
+    template <typename U>
+    Vector2D<T>& operator+=(const Vector2D<U>& rhs) {
+        x += rhs.x;
+        y += rhs.y;
+        return *this;
+    }
 };
 
-struct PixelColor
-{
-	uint8_t r, g, b;
+struct PixelColor {
+    uint8_t r, g, b;
 };
 
 const PixelColor kColorBlack{0, 0, 0};
 const PixelColor kColorWhite{255, 255, 255};
 
-class PixelWriter
-{
+class PixelWriter {
 public:
-	PixelWriter(const FrameBufferConfig &config) : config_{config} {}
-	virtual ~PixelWriter() = default;
-	virtual void Write(int x, int y, const PixelColor &c) = 0;
-	void DrawRectangle(const Vector2D<int> &pos, const Vector2D<int> &size, const PixelColor &c);
-	void FillRectangle(const Vector2D<int> &pos, const Vector2D<int> &size, const PixelColor &c);
+    PixelWriter(const FrameBufferConfig& config) : config_{config} {}
+    virtual ~PixelWriter() = default;
+    virtual void Write(int x, int y, const PixelColor& c) = 0;
+    void DrawRectangle(const Vector2D<int>& pos, const Vector2D<int>& size, const PixelColor& c);
+    void FillRectangle(const Vector2D<int>& pos, const Vector2D<int>& size, const PixelColor& c);
 
 protected:
-	uint8_t *PixelAt(int x, int y)
-	{
-		return config_.frame_buffer + 4 * (config_.pixels_per_scan_line * y + x);
-	}
+    uint8_t* PixelAt(int x, int y) {
+        return config_.frame_buffer + 4 * (config_.pixels_per_scan_line * y + x);
+    }
 
 private:
-	const FrameBufferConfig &config_;
+    const FrameBufferConfig& config_;
 };
 
-class RGBResv8BitPerColorPixleWriter : public PixelWriter
-{
+class RGBResv8BitPerColorPixleWriter : public PixelWriter {
 public:
-	using PixelWriter::PixelWriter;
+    using PixelWriter::PixelWriter;
 
-	virtual void Write(int x, int y, const PixelColor &c) override;
+    virtual void Write(int x, int y, const PixelColor& c) override;
 };
 
-class BGRResv8BitPerColorPixleWriter : public PixelWriter
-{
+class BGRResv8BitPerColorPixleWriter : public PixelWriter {
 public:
-	using PixelWriter::PixelWriter;
+    using PixelWriter::PixelWriter;
 
-	virtual void Write(int x, int y, const PixelColor &c) override;
+    virtual void Write(int x, int y, const PixelColor& c) override;
 };
