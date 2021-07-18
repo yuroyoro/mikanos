@@ -5,7 +5,7 @@
 namespace {
     const int kMouseCursorWidth = 15;
     const int kMouseCursorHeight = 24;
-    const char mouse_cursor_shpae[kMouseCursorHeight][kMouseCursorWidth + 1] = {
+    const char mouse_cursor_shape[kMouseCursorHeight][kMouseCursorWidth + 1] = {
         "@              ",
         "@@             ",
         "@.@            ",
@@ -36,9 +36,9 @@ namespace {
 
         for (int dy = 0; dy < kMouseCursorHeight; ++dy) {
             for (int dx = 0; dx < kMouseCursorWidth; ++dx) {
-                if (mouse_cursor_shpae[dy][dx] == '@') {
+                if (mouse_cursor_shape[dy][dx] == '@') {
                     pixel_writer->Write(position.x + dx, position.y + dy, kColorBlack);
-                } else if (mouse_cursor_shpae[dy][dx] == '.') {
+                } else if (mouse_cursor_shape[dy][dx] == '.') {
                     pixel_writer->Write(position.x + dx, position.y + dy, kColorWhite);
                 }
             }
@@ -49,7 +49,7 @@ namespace {
                           PixelColor erase_color) {
         for (int dy = 0; dy < kMouseCursorHeight; ++dy) {
             for (int dx = 0; dx < kMouseCursorWidth; ++dx) {
-                if (mouse_cursor_shpae[dy][dx] != ' ') {
+                if (mouse_cursor_shape[dy][dx] != ' ') {
                     pixel_writer->Write(position.x + dx, position.y + dy, erase_color);
                 }
             }
