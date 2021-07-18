@@ -2,9 +2,9 @@
 #include <new>
 
 std::new_handler std::get_new_handler() noexcept {
-    return nullptr;
+  return nullptr;
 }
 
 extern "C" int posix_memalign(void**, size_t, size_t) {
-    return ENOMEM;
+  return ENOMEM;
 }

@@ -1,9 +1,7 @@
-BasedOnStyle: LLVM
+BasedOnStyle: Chromium
 
 # 末尾のコメント文を整形
 AlignTrailingComments: true
-
-IndentWidth: 4
 
 # C++バージョン(C++03以前 or C++11以降)
 Standard: C++11
@@ -26,7 +24,7 @@ AllowShortIfStatementsOnASingleLine: true
 NamespaceIndentation: All
 
 # アクセス修飾子とclassのインデントを合わせる
-AccessModifierOffset: -4
+AccessModifierOffset: -2
 
 # ex. int *a -> int* a
 PointerAlignment: Left
