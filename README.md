@@ -354,3 +354,36 @@ KernelMain:
 	hlt
 	jmp .fin
 ```
+
+#### 8.7 メモリ管理に挑戦(osbook_day08c)
+
+ビットマップを利用してページ管理するメモリマネージャーを作成する。
+
+`kernle/test` に単体テストが追加されていて、ようやくテスト書くのかーと思ったら後のコミットで消されていた……。
+テスト書いていったほうがいいと思うのになぜ消したんだろう?
+
+`BitmapMemoryManager` では、メモリ領域を4KiB毎のメモリフレームに分割して管理する。
+各メモリフレームの使用状況は ビットマップで管理されており、このビットマップの実態は `alloc_map_` 配列である。
+
+```cpp
+  /** @brief ビットマップ配列の要素型 */
+  using MapLineType = unsigned long;
+  /** @brief ビットマップ配列の 1 つの要素のビット数 == フレーム数 */
+  static const size_t kBitsPerMapLine{8 * sizeof(MapLineType)};
+
+  std::array<MapLineType, kFrameCount / kBitsPerMapLine> alloc_map_
+```
+
+配列の要素型は `unsigned long` (8byte) なので 64bitであり、 配列1要素で64個のメモリフレームを管理できる。
+
+-  `GetBit` `SetBit` : フレームIDに対応するビットを設定/取得する関数
+- `WithError<FrameID> Allocate(size_t num_frames)` : 指定フレーム数のメモリのアロケーションを行う。管理対象領域を先頭から探索して連続した要求フレーム数の空き領域が最初に見つかった時点で確保する
+- `Error Free(FrameID start_frame, size_t num_frames);` : 指定フレーム数のメモリを開放する。 `malloc` `free` ではアロケーション時点で確保したメモリ領域のサイズが記録されているので 開放時にサイズを渡す必要はないが、このメモリマネージャーはサイズを記録しないので利用する側でどの程度開放するかを指定しなければならない。
+
+起動時には、このメモリマネージャーに対してUEFIからもらってきたメモリマップを参照して利用不可の領域にはマークを設定していく。
+このメモリのアロケーションのロジックだと、常に領域の先頭(FrameID: 0)から順番に領域を探索していくのであんまり効率がよろしくないように思えるけどどうなんだろう?  あとで改善するんかな?
+
+そういえば、Bitmapでメモリ管理といえばRubyのGCでも似たようなことやってた気がする。
+
+- [メモリ管理、アドレス空間、ページテーブル](http://www.coins.tsukuba.ac.jp/~yas/coins/os2-2011/2012-01-24/)
+- [メモリ管理](http://www.coins.tsukuba.ac.jp/~yas/coins/os2-2020/2021-01-13/index.html)
