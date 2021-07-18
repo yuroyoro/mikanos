@@ -102,8 +102,7 @@ namespace pci {
     /** @brief PCI ケーパビリティレジスタの共通ヘッダ */
     union CapabilityHeader {
         uint32_t data;
-        struct
-        {
+        struct {
             uint32_t cap_id : 8;
             uint32_t next_ptr : 8;
             uint32_t cap : 16;
@@ -128,8 +127,7 @@ namespace pci {
     struct MSICapability {
         union {
             uint32_t data;
-            struct
-            {
+            struct {
                 uint32_t cap_id : 8;
                 uint32_t next_ptr : 8;
                 uint32_t msi_enable : 1;

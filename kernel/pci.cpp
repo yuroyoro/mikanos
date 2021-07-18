@@ -161,13 +161,13 @@ namespace {
     /** @brief 指定された MSI レジスタを設定する */
     Error ConfigureMSIRegister(const Device& dev, uint8_t cap_addr,
                                uint32_t msg_addr, uint32_t msg_data,
-                               unsigned int num_vector_exponet) {
+                               unsigned int num_vector_exponent) {
         auto msi_cap = ReadMSICapability(dev, cap_addr);
 
-        if (msi_cap.header.bits.multi_msg_capable <= num_vector_exponet) {
+        if (msi_cap.header.bits.multi_msg_capable <= num_vector_exponent) {
             msi_cap.header.bits.multi_msg_enable = msi_cap.header.bits.multi_msg_capable;
         } else {
-            msi_cap.header.bits.multi_msg_enable = num_vector_exponet;
+            msi_cap.header.bits.multi_msg_enable = num_vector_exponent;
         }
 
         msi_cap.header.bits.msi_enable = 1;
@@ -251,8 +251,7 @@ namespace pci {
 
         // have multiple host bridges
         for (uint8_t function = 1; function < 8; ++function) {
-            if (IsInvalidVendorId(0, 0, function)) // no device on bus
-            {
+            if (IsInvalidVendorId(0, 0, function)) { // no device on bus
                 continue;
             }
 
@@ -275,7 +274,7 @@ namespace pci {
         WriteData(value);
     }
 
-    WithError<uint_fast64_t> ReadBar(Device& device, unsigned int bar_index) {
+    WithError<uint64_t> ReadBar(Device& device, unsigned int bar_index) {
         if (bar_index >= 6) {
             return {0, MAKE_ERROR(Error::kIndexOutOfRange)};
         }
@@ -290,10 +289,10 @@ namespace pci {
 
         // 64 bit address
         if (bar_index >= 5) {
-            return {bar, MAKE_ERROR(Error::kIndexOutOfRange)};
+            return {0, MAKE_ERROR(Error::kIndexOutOfRange)};
         }
 
-        auto bar_upper = ReadConfReg(device, addr + 4);
+        const auto bar_upper = ReadConfReg(device, addr + 4);
         return {
             bar | (static_cast<uint64_t>(bar_upper) << 32),
             MAKE_ERROR(Error::kSuccess)};
@@ -323,7 +322,7 @@ namespace pci {
 
         if (msi_cap_addr) {
             return ConfigureMSIRegister(dev, msi_cap_addr, msg_addr, msg_data, num_vector_exponent);
-        } else {
+        } else if (msix_cap_addr) {
             return ConfigureMSIXRegister(dev, msix_cap_addr, msg_addr, msg_data, num_vector_exponent);
         }
 

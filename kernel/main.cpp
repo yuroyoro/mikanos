@@ -62,11 +62,11 @@ void SwitchEhci2Xhci(const pci::Device& xhc_dev) {
         return;
     }
 
-    uint32_t superspeeed_ports = pci::ReadConfReg(xhc_dev, 0xdc); // USB3PRM
-    pci::WriteConfReg(xhc_dev, 0xd8, superspeeed_ports);          // USB3_PSSEN
-    uint32_t ehci2xhci_ports = pci::ReadConfReg(xhc_dev, 0xd4);   // XUSB2PRM
-    pci::WriteConfReg(xhc_dev, 0xd0, ehci2xhci_ports);            // USB3_PSSEN
-    Log(kDebug, "SwitchEhci2Xhci:SS = %02, xHCI = %02x\n", superspeeed_ports, ehci2xhci_ports);
+    uint32_t superspeed_ports = pci::ReadConfReg(xhc_dev, 0xdc); // USB3PRM
+    pci::WriteConfReg(xhc_dev, 0xd8, superspeed_ports);          // USB3_PSSEN
+    uint32_t ehci2xhci_ports = pci::ReadConfReg(xhc_dev, 0xd4);  // XUSB2PRM
+    pci::WriteConfReg(xhc_dev, 0xd0, ehci2xhci_ports);           // USB3_PSSEN
+    Log(kDebug, "SwitchEhci2Xhci:SS = %02, xHCI = %02x\n", superspeed_ports, ehci2xhci_ports);
 }
 
 usb::xhci::Controller* xhc;
@@ -185,14 +185,15 @@ extern "C" void KernelMainNewStack(
 
     // scan PCI devices
     auto err = pci::ScanAllBus();
-    printk("ScanAllBus: %s\n", err.Name());
+    Log(kDebug, "ScanAllBus: %s\n", err.Name());
 
     for (int i = 0; i < pci::num_device; ++i) {
         const auto& dev = pci::devices[i];
-        auto vendor_id = pci::ReadVendorId(dev.bus, dev.device, dev.function);
+        auto vendor_id = pci::ReadVendorId(dev);
         auto class_code = pci::ReadClassCode(dev.bus, dev.device, dev.function);
         Log(kDebug, "%d.%d.%d: vend %04x, class %08x, head %02x\n",
-            dev.bus, dev.device, dev.function, vendor_id, class_code, dev.header_type);
+            dev.bus, dev.device, dev.function,
+            vendor_id, class_code, dev.header_type);
     }
 
     // Intel 製を優先して xHC を探す
