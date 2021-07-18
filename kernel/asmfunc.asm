@@ -21,7 +21,7 @@ IoIn32:
 
 global GetCS  ; uint16_t GetCS(void);
 GetCS:
-	xor eax, eax ; also clear upper 32 bits of rax
+	xor eax, eax ; also clears upper 32 bits of rax
 	mov ax, cs
 	ret
 

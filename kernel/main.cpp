@@ -20,8 +20,10 @@
 #include "logger.hpp"
 #include "memory_map.hpp"
 #include "mouse.hpp"
+#include "paging.hpp"
 #include "pci.hpp"
 #include "queue.hpp"
+#include "segment.hpp"
 
 #include "usb/classdriver/mouse.hpp"
 #include "usb/device.hpp"
@@ -150,27 +152,31 @@ extern "C" void KernelMainNewStack(
     printk("Welcom to MikanOS!\n");
     SetLogLevel(kWarn);
 
-    // memory map
-    const std::array available_memory_types{
-        MemoryType::kEfiBootServicesCode,
-        MemoryType::kEfiBootServicesData,
-        MemoryType::kEfiConventionalMemory,
-    };
+    // setup segment
+    SetupSegments();
 
-    for (
-        uintptr_t iter = reinterpret_cast<uintptr_t>(memory_map.buffer);
-        iter < reinterpret_cast<uintptr_t>(memory_map.buffer) + memory_map.map_size;
-        iter += memory_map.descriptor_size) {
+    // setup page table
+    const uint16_t kernel_cs = 1 << 3;
+    const uint16_t kernel_ss = 2 << 3;
+
+    SetDSAll(0);
+    SetCSSS(kernel_cs, kernel_ss);
+
+    SetupIdentityPageTable();
+
+    const auto memory_map_base = reinterpret_cast<uintptr_t>(memory_map.buffer);
+
+    for (uintptr_t iter = memory_map_base;
+         iter < memory_map_base + memory_map.map_size;
+         iter += memory_map.descriptor_size) {
         auto desc = reinterpret_cast<MemoryDescriptor*>(iter);
-        for (int i = 0; i < available_memory_types.size(); ++i) {
-            if (desc->type == available_memory_types[i]) {
-                printk("type = %u, phys = %08lx - %08lx, pages = %lu, attr = %08lx\n",
-                       desc->type,
-                       desc->physical_start,
-                       desc->physical_start + desc->number_of_pages * 4096 - 1,
-                       desc->number_of_pages,
-                       desc->attribute);
-            }
+        if (IsAvailable(static_cast<MemoryType>(desc->type))) {
+            printk("type = %u, phys = %08lx - %08lx, pages = %lu, attr = %08lx\n",
+                   desc->type,
+                   desc->physical_start,
+                   desc->physical_start + desc->number_of_pages * 4096 - 1,
+                   desc->number_of_pages,
+                   desc->attribute);
         }
     }
 
@@ -213,14 +219,12 @@ extern "C" void KernelMainNewStack(
             xhc_dev->bus, xhc_dev->device, xhc_dev->function);
     }
 
-    // read code segement
-    const uint16_t cs = GetCS();
     // set XHCI interupt handler
     SetIDTEntry(
         idt[InterruptVector::kXHCI],
         MakeIDTAttr(DescriptorType::kInterruptGate, 0),
         reinterpret_cast<uint64_t>(IntHandlerXHCI),
-        cs);
+        kernel_cs);
 
     // setup IDT
     LoadIDT(sizeof(idt) - 1, reinterpret_cast<uintptr_t>(&idt[0]));
