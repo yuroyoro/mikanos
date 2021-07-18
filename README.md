@@ -320,4 +320,26 @@ queueを使った割り込みの実装。
 #### 8.2 UEFIメモリマップ(osbook_day08a)
 
 ブートローダーからUEFI BIOSで取得したメモリマップをkernelに渡すようにする。
+Nand2TetrisのHackアーキテクチャではメモリレイアウトは固定で定義されていたけど、現実のPCは様々なメモリを積んでいるのでBIOSから情報をもらってくる必要があるってことだ。
+
+#### 8.3 データ構造の移動(osbook_day08b)
+
+UEFIが設定したGDTとページテーブルをOS管理のメモリ領域へ移動させ、カーネル用のスタックを確保する処理を実装する
+
+- `memory_map.hpp` :
+  - `bool IsAvailable(MemoryType memory_type)`  : 利用可能なメモリ領域か判定する
+- `paging.hpp` `paging.cpp` : ページングに関する処理
+  - `void SetupIdentityPageTable()` : 仮想アドレスと物理アドレスが一致するページテーブルを設定する
+- `asmfunc.h` `asmfunc.asm` :
+  - `void LoadGDT(uint16_t limit, uint64_t offset)` : GDTの設定を行う。LoadIDTと同じようにスタックにアドレスを積んで `lgdt` を呼び事で設定される
+  - `void SetCSSS(uint16_t cs, uint16_t ss)` : ssと、far callを利用してCSを設定する
+  - `void SetDSAll(uint16_t value)` : セグメントレジスタの設定
+  - `void SetCR3(uint64_t value)` : CR3にページテーブルのアドレスを設定する
+- `x86_descriptor.hpp` `interrupt.hpp` : `DescriptorType` が `x86_descriptor.hpp` に移動
+- `segment.hpp` `segment.cpp` : セグメンテーションに関する処理.64bit modeではセグメンテーションは意味がないらしいけど最低限の設定をする
+  - `SetCodeSegment` : GDTに設定するコードセグメントディスクリプタの設定
+  - `SetDataSegment` : GDTに設定する゙データセグメントディスクリプタの設定
+  - `SetupSegments` : 3つのセグメントディスクリプタ(ヌル、コード、データ)を用意してGDTをCPUに設定する
+
+
 
