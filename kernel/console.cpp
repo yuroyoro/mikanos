@@ -6,7 +6,7 @@
 Console::Console(
     PixelWriter& writer,
     const PixelColor& fg_color, const PixelColor& bg_color)
-    : writer_{writer}, fg_color_{fg_color}, bg_color{bg_color},
+    : writer_{writer}, fg_color_{fg_color}, bg_color_{bg_color},
       buffer_{}, cursor_row_{0}, cursor_column_{0} {
 }
 
@@ -46,7 +46,7 @@ void Console::Newline() {
 void Console::Clear() {
     for (int y = 0; y < kRowHight * kRows; ++y) {
         for (int x = 0; x < kColumnWidth * kColumns; ++x) {
-            writer_.Write(x, y, bg_color);
+            writer_.Write(x, y, bg_color_);
         }
     }
 }
