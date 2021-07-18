@@ -23,7 +23,8 @@ const PixelColor kColorWhite{255, 255, 255};
 
 class PixelWriter {
 public:
-    PixelWriter(const FrameBufferConfig& config) : config_{config} {}
+    PixelWriter(const FrameBufferConfig& config) : config_{config} {
+    }
     virtual ~PixelWriter() = default;
     virtual void Write(int x, int y, const PixelColor& c) = 0;
     void DrawRectangle(const Vector2D<int>& pos, const Vector2D<int>& size, const PixelColor& c);
@@ -38,14 +39,14 @@ private:
     const FrameBufferConfig& config_;
 };
 
-class RGBResv8BitPerColorPixleWriter : public PixelWriter {
+class RGBResv8BitPerColorPixelWriter : public PixelWriter {
 public:
     using PixelWriter::PixelWriter;
 
     virtual void Write(int x, int y, const PixelColor& c) override;
 };
 
-class BGRResv8BitPerColorPixleWriter : public PixelWriter {
+class BGRResv8BitPerColorPixelWriter : public PixelWriter {
 public:
     using PixelWriter::PixelWriter;
 

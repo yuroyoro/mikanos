@@ -35,7 +35,7 @@ const PixelColor kDesktopStatusBarButtonBGColor = {1, 8, 17};
 const PixelColor kDesktopStatusBarButtonFGColor = {160, 160, 160};
 const PixelColor kDesktopStatusBarColor = {80, 80, 80};
 
-char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixleWriter)];
+char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
 PixelWriter* pixel_writer;
 
 char console_buf[sizeof(Console)];
@@ -112,11 +112,11 @@ extern "C" void KernelMainNewStack(
     switch (frame_buffer_config.pixel_format) {
     case kPixelRGBResv8BitPerColor:
         pixel_writer = new (pixel_writer_buf)
-            RGBResv8BitPerColorPixleWriter{frame_buffer_config};
+            RGBResv8BitPerColorPixelWriter{frame_buffer_config};
         break;
     case kPixelBGRResv8BitPerColor:
         pixel_writer = new (pixel_writer_buf)
-            BGRResv8BitPerColorPixleWriter{frame_buffer_config};
+            BGRResv8BitPerColorPixelWriter{frame_buffer_config};
         break;
     }
 
