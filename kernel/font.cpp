@@ -1,3 +1,9 @@
+/**
+ * @file font.cpp
+ *
+ * フォント描画のプログラムを集めたファイル.
+ */
+
 #include "font.hpp"
 
 extern const uint8_t _binary_hankaku_bin_start;

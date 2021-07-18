@@ -12,8 +12,7 @@ typedef int64_t Elf64_Sxword;
 
 #define EI_NIDENT 16
 
-typedef struct
-{
+typedef struct {
     unsigned char e_ident[EI_NIDENT];
     Elf64_Half e_type;
     Elf64_Half e_machine;
@@ -30,8 +29,7 @@ typedef struct
     Elf64_Half e_shstrndx;
 } Elf64_Ehdr;
 
-typedef struct
-{
+typedef struct {
     Elf64_Word p_type;
     Elf64_Word p_flags;
     Elf64_Off p_offset;
@@ -51,8 +49,7 @@ typedef struct
 #define PT_PHDR 6
 #define PT_TLS 7
 
-typedef struct
-{
+typedef struct {
     Elf64_Sxword d_tag;
     union {
         Elf64_Xword d_val;
@@ -65,8 +62,7 @@ typedef struct
 #define DT_RELASZ 8
 #define DT_RELAENT 9
 
-typedef struct
-{
+typedef struct {
     Elf64_Addr r_offset;
     Elf64_Xword r_info;
     Elf64_Sxword r_addend;

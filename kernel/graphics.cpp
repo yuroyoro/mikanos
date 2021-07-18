@@ -1,3 +1,9 @@
+/**
+ * @file graphics.cpp
+ *
+ * 画像描画関連のプログラムを集めたファイル．
+ */
+
 #include "graphics.hpp"
 
 void PixelWriter::DrawRectangle(const Vector2D<int>& pos, const Vector2D<int>& size, const PixelColor& c) {
