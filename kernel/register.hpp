@@ -10,8 +10,7 @@
 #include <cstdint>
 
 template <typename T>
-struct ArrayLength {
-};
+struct ArrayLength {};
 
 template <typename T, size_t N>
 struct ArrayLength<T[N]> {
@@ -77,7 +76,9 @@ public:
     using Iterator = ValueType*;
     using ConstIterator = const ValueType*;
 
-    ArrayWrapper(uintptr_t array_base_addr, size_t size) : array_(reinterpret_cast<ValueType*>(array_base_addr)), size_(size) {}
+    ArrayWrapper(uintptr_t array_base_addr, size_t size)
+        : array_(reinterpret_cast<ValueType*>(array_base_addr)),
+          size_(size) {}
 
     size_t Size() const { return size_; }
 
@@ -86,7 +87,7 @@ public:
     Iterator begin() { return array_; }
     Iterator end() { return array_ + size_; }
     ConstIterator cbegin() const { return array_; }
-    ConstIterator end() const { return array_ + size_; }
+    ConstIterator cend() const { return array_ + size_; }
 
     ValueType& operator[](size_t index) { return array_[index]; }
 

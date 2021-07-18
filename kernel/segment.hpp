@@ -19,7 +19,7 @@ union SegmentDescriptor {
         uint64_t base_middle : 8;
         DescriptorType type : 4;
         uint64_t system_segment : 1;
-        uint64_t descriptor_privilege_level : 3;
+        uint64_t descriptor_privilege_level : 2;
         uint64_t present : 1;
         uint64_t limit_high : 4;
         uint64_t available : 1;

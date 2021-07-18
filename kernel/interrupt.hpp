@@ -24,7 +24,7 @@ union InterruptDescriptorAttribute {
 } __attribute__((packed));
 
 struct InterruptDescriptor {
-    uint16_t offset_row;
+    uint16_t offset_low;
     uint16_t segment_selector;
     InterruptDescriptorAttribute attr;
     uint16_t offset_middle;

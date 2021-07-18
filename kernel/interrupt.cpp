@@ -13,7 +13,7 @@ void SetIDTEntry(InterruptDescriptor& desc,
                  uint64_t offset,
                  uint16_t segment_selector) {
     desc.attr = attr;
-    desc.offset_row = offset & 0xffffu;
+    desc.offset_low = offset & 0xffffu;
     desc.offset_middle = (offset >> 16) & 0xffffu;
     desc.offset_high = offset >> 32;
     desc.segment_selector = segment_selector;

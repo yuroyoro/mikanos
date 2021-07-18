@@ -277,6 +277,8 @@ extern "C" void KernelMainNewStack(
         }
 
         Message msg = main_queue.Front();
+        main_queue.Pop();
+        __asm__("sti");
 
         switch (msg.type) {
         case Message::kInterruptXHCI:
