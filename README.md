@@ -341,5 +341,16 @@ UEFIが設定したGDTとページテーブルをOS管理のメモリ�
   - `SetDataSegment` : GDTに設定する゙データセグメントディスクリプタの設定
   - `SetupSegments` : 3つのセグメントディスクリプタ(ヌル、コード、データ)を用意してGDTをCPUに設定する
 
+また、カーネルのメイン処理を開始する前に、UEFIが用意したスタックからOS管理のスタック領域に変更してカーネルを開始するようにする。
+今までcppで書いていた `KernelMain` をアセンブリに書き換える。
+やってることは単純で、 `main.cpp` で定義されている `kernel_main_stack` のアドレスにスタックポインタを書き換えてからcppで実装した関数を呼ぶだけ
 
-
+```
+global KernelMain
+KernelMain:
+	mov rsp, kernel_main_stack + 1024 * 1024
+	call KernelMainNewStack
+.fin:
+	hlt
+	jmp .fin
+```

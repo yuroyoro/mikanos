@@ -98,9 +98,15 @@ int printk(const char* format, ...) {
     return result;
 }
 
-extern "C" void KernelMain(
-    const FrameBufferConfig& frame_buffer_config,
-    const MemoryMap& memory_map) {
+/* kernel stack */
+alignas(16) uint8_t kernel_main_stack[1024 * 1024];
+
+extern "C" void KernelMainNewStack(
+    const FrameBufferConfig& frame_buffer_config_ref,
+    const MemoryMap& memory_map_ref) {
+
+    const FrameBufferConfig frame_buffer_config{frame_buffer_config_ref};
+    const MemoryMap memory_map{memory_map_ref};
 
     // initialize PixelWriter
     switch (frame_buffer_config.pixel_format) {
@@ -151,7 +157,6 @@ extern "C" void KernelMain(
         MemoryType::kEfiConventionalMemory,
     };
 
-    printk("memory_map: %p\n", &memory_map);
     for (
         uintptr_t iter = reinterpret_cast<uintptr_t>(memory_map.buffer);
         iter < reinterpret_cast<uintptr_t>(memory_map.buffer) + memory_map.map_size;
