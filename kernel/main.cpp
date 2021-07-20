@@ -195,6 +195,13 @@ extern "C" void KernelMainNewStack(
   }
   memory_manager->SetMemoryRange(FrameID{1}, FrameID{avaliable_end / kBytesPerFrame});
 
+  // allocate heap
+  if (auto err = InitializeHeap(*memory_manager)) {
+    Log(kError, "failed to allocate pages: %s at %s:%d\n",
+        err.Name(), err.File(), err.Line());
+    exit(1);
+  }
+
   // draw mouse cursor
   mouse_cursor = new (mouse_cursor_buf) MouseCursor{
       pixel_writer, kDesktopBGColor, {300, 200}};
