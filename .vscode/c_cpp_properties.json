@@ -5,12 +5,13 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${HOME}/edk2/MdePkg/Include/**",
-                "${HOME}/osbook/devenv/x86_64-elf/**"
+                "${HOME}/osbook/devenv/x86_64-elf/include/**",
+                "/home/vscode/osbook/devenv/x86_64-elf/include/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
-            "cppStandard": "c++14",
+            "cppStandard": "c++17",
             "intelliSenseMode": "linux-clang-x64"
         }
     ],

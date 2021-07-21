@@ -387,3 +387,23 @@ KernelMain:
 
 - [メモリ管理、アドレス空間、ページテーブル](http://www.coins.tsukuba.ac.jp/~yas/coins/os2-2011/2012-01-24/)
 - [メモリ管理](http://www.coins.tsukuba.ac.jp/~yas/coins/os2-2020/2021-01-13/index.html)
+
+Nand2Tetrisでは、allocateするときに確保したアドレスの先頭-1byteにサイズを記録したFreeListで実装したのだった。
+
+### 第9章 重ね合わせ処理
+
+グラフィックスの描画にウィンドウとレイヤーを導入して重ね合わせる実装をするよ。
+
+### 9.1 重ね合わせ処理(osbook_day09a)
+
+まず8章で実装したメモリマネージャーを使ってsbrkを実装する。これでnew演算子が使えるようになるぞ
+
+- `memory_manger.hpp` `memory_manager.cpp` :
+  - `InitializeHeap` : sbrkで利用するHeap領域を確保する
+- `newlib_supoort.c` : `sbrk` で `InitializeHeap` で確保した領域を返すようにする
+- `main.cpp` : `InitializeHeap` を呼び出す
+
+つぎに、 `Window` クラスを定義する。
+
+- `grahpics.hpp` : クラス階層が変更されて、 `FrameBufferWriter` が導入された
+- `window.hpp` `window.cpp` : Windowクラスの実装。width x heightのピクセルデータを2次元配列で持つ
