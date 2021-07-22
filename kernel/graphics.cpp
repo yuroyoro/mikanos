@@ -40,3 +40,28 @@ void BGRResv8BitPerColorPixelWriter::Write(int x, int y, const PixelColor& c) {
   p[1] = c.g;
   p[2] = c.r;
 }
+
+void DrawDesktop(PixelWriter& writer) {
+  const auto width = writer.Width();
+  const auto height = writer.Height();
+
+  writer.FillRectangle(
+      {0, 0},
+      {width, height - kDesktopStatusBarHeight},
+      kDesktopBGColor);
+
+  writer.FillRectangle(
+      {0, height - kDesktopStatusBarHeight},
+      {width, kDesktopStatusBarHeight},
+      kDesktopStatusBarColor);
+
+  writer.FillRectangle(
+      {0, height - kDesktopStatusBarHeight},
+      {width / kDesktopStartMenuRatio, kDesktopStatusBarHeight},
+      kDesktopStartMenuBGColor);
+
+  writer.DrawRectangle(
+      {kDesktopStartMenuMargin, height - (kDesktopStatusBarHeight - kDesktopStartMenuMargin)},
+      {kDesktopStartMenuWidth, kDesktopStartMenuHeight},
+      kDesktopStartMenuFGColor);
+}

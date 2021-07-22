@@ -49,8 +49,8 @@ void LayerManager::Draw() const {
   }
 }
 
-void LayerManager::Move(unsigned int id, Vector2D<int> new_postion) {
-  FindLayer(id)->Move(new_postion);
+void LayerManager::Move(unsigned int id, Vector2D<int> new_position) {
+  FindLayer(id)->Move(new_position);
 }
 
 void LayerManager::MoveRelative(unsigned int id, Vector2D<int> pos_diff) {
@@ -72,6 +72,7 @@ void LayerManager::UpDown(unsigned int id, int new_height) {
 
   if (old_pos == layer_stack_.end()) {
     layer_stack_.insert(new_pos, layer);
+    return;
   }
 
   if (new_pos == layer_stack_.end()) {
@@ -99,3 +100,5 @@ Layer* LayerManager::FindLayer(unsigned int id) {
   }
   return it->get();
 }
+
+LayerManager* layer_manager;

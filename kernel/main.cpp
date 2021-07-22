@@ -17,6 +17,7 @@
 #include "frame_buffer_config.hpp"
 #include "graphics.hpp"
 #include "interrupt.hpp"
+#include "layer.hpp"
 #include "logger.hpp"
 #include "memory_manager.hpp"
 #include "memory_map.hpp"
@@ -25,6 +26,7 @@
 #include "pci.hpp"
 #include "queue.hpp"
 #include "segment.hpp"
+#include "window.hpp"
 
 #include "usb/classdriver/mouse.hpp"
 #include "usb/device.hpp"
@@ -32,26 +34,20 @@
 #include "usb/xhci/trb.hpp"
 #include "usb/xhci/xhci.hpp"
 
-const PixelColor kDesktopBGColor{45, 118, 237};
-const PixelColor kDesktopFGColor = kColorWhite;
-const PixelColor kDesktopStatusBarButtonBGColor = {1, 8, 17};
-const PixelColor kDesktopStatusBarButtonFGColor = {160, 160, 160};
-const PixelColor kDesktopStatusBarColor = {80, 80, 80};
-
 char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
 PixelWriter* pixel_writer;
 
 char console_buf[sizeof(Console)];
 Console* console;
 
-char mouse_cursor_buf[sizeof(MouseCursor)];
-MouseCursor* mouse_cursor;
-
 char memory_manager_buf[sizeof(BitmapMemoryManager)];
 BitmapMemoryManager* memory_manager;
 
+unsigned int mouse_layer_id;
+
 void MouseObserver(int8_t displacement_x, int8_t displacement_y) {
-  mouse_cursor->MoveRelative({displacement_x, displacement_y});
+  layer_manager->MoveRelative(mouse_layer_id, {displacement_x, displacement_y});
+  layer_manager->Draw();
 }
 
 void SwitchEhci2Xhci(const pci::Device& xhc_dev) {
@@ -110,8 +106,8 @@ alignas(16) uint8_t kernel_main_stack[1024 * 1024];
 extern "C" void KernelMainNewStack(
     const FrameBufferConfig& frame_buffer_config_ref,
     const MemoryMap& memory_map_ref) {
-  const FrameBufferConfig frame_buffer_config{frame_buffer_config_ref};
-  const MemoryMap memory_map{memory_map_ref};
+  FrameBufferConfig frame_buffer_config{frame_buffer_config_ref};
+  MemoryMap memory_map{memory_map_ref};
 
   // initialize PixelWriter
   switch (frame_buffer_config.pixel_format) {
@@ -125,34 +121,14 @@ extern "C" void KernelMainNewStack(
       break;
   }
 
-  const int kFrameWidth = frame_buffer_config.horizontal_resolution;
-  const int kFrameHeight = frame_buffer_config.vertical_resolution;
-
   // draw desktop
-  pixel_writer->FillRectangle(
-      {0, 0},
-      {kFrameWidth, kFrameHeight - 50},
-      kDesktopBGColor);
-
-  pixel_writer->FillRectangle(
-      {0, kFrameHeight - 50},
-      {kFrameWidth, 50},
-      kDesktopStatusBarColor);
-
-  pixel_writer->FillRectangle(
-      {0, kFrameHeight - 50},
-      {kFrameWidth / 5, 50},
-      kDesktopStatusBarButtonBGColor);
-
-  pixel_writer->DrawRectangle(
-      {10, kFrameHeight - 40},
-      {30, 30},
-      kDesktopStatusBarButtonFGColor);
+  DrawDesktop(*pixel_writer);
 
   console = new (console_buf) Console{
-      *pixel_writer, kDesktopFGColor, kDesktopBGColor};
+      kDesktopFGColor, kDesktopBGColor};
+  console->SetWriter(pixel_writer);
 
-  printk("Welcom to MikanOS!\n");
+  printk("Welcome to MikanOS!\n");
   SetLogLevel(kWarn);
 
   // setup segment
@@ -171,29 +147,29 @@ extern "C" void KernelMainNewStack(
   ::memory_manager = new (memory_manager_buf) BitmapMemoryManager;
 
   const auto memory_map_base = reinterpret_cast<uintptr_t>(memory_map.buffer);
-  uintptr_t avaliable_end = 0;
+  uintptr_t available_end = 0;
 
   for (uintptr_t iter = memory_map_base;
        iter < memory_map_base + memory_map.map_size;
        iter += memory_map.descriptor_size) {
-    auto desc = reinterpret_cast<MemoryDescriptor*>(iter);
-    if (avaliable_end < desc->physical_start) {
+    auto desc = reinterpret_cast<const MemoryDescriptor*>(iter);
+    if (available_end < desc->physical_start) {
       memory_manager->MarkAllocated(
-          FrameID{avaliable_end / kBytesPerFrame},
-          (desc->physical_start - avaliable_end) / kBytesPerFrame);
+          FrameID{available_end / kBytesPerFrame},
+          (desc->physical_start - available_end) / kBytesPerFrame);
     }
 
     const auto physical_end =
         desc->physical_start + desc->number_of_pages * kUEFIPageSize;
     if (IsAvailable(static_cast<MemoryType>(desc->type))) {
-      avaliable_end = physical_end;
+      available_end = physical_end;
     } else {
       memory_manager->MarkAllocated(
           FrameID{desc->physical_start / kBytesPerFrame},
           desc->number_of_pages * kUEFIPageSize / kBytesPerFrame);
     }
   }
-  memory_manager->SetMemoryRange(FrameID{1}, FrameID{avaliable_end / kBytesPerFrame});
+  memory_manager->SetMemoryRange(FrameID{1}, FrameID{available_end / kBytesPerFrame});
 
   // allocate heap
   if (auto err = InitializeHeap(*memory_manager)) {
@@ -201,10 +177,6 @@ extern "C" void KernelMainNewStack(
         err.Name(), err.File(), err.Line());
     exit(1);
   }
-
-  // draw mouse cursor
-  mouse_cursor = new (mouse_cursor_buf) MouseCursor{
-      pixel_writer, kDesktopBGColor, {300, 200}};
 
   // initialize message queue
   std::array<Message, 32> main_queue_data;
@@ -292,6 +264,37 @@ extern "C" void KernelMainNewStack(
       }
     }
   }
+
+  // initialize background(Desktop) layer and mouse layer
+  const int kFrameWidth = frame_buffer_config.horizontal_resolution;
+  const int kFrameHeight = frame_buffer_config.vertical_resolution;
+
+  auto bgwindow = std::make_shared<Window>(kFrameWidth, kFrameHeight);
+  auto bgwriter = bgwindow->Writer();
+
+  DrawDesktop(*bgwriter);
+  console->SetWriter(bgwriter);
+
+  auto mouse_window = std::make_shared<Window>(
+      kMouseCursorWidth, kMouseCursorHeight);
+  mouse_window->SetTransparentColor(kMouseTransparentColor);
+  DrawMouseCursor(mouse_window->Writer(), {0, 0});
+
+  layer_manager = new LayerManager;
+  layer_manager->SetWriter(pixel_writer);
+
+  auto bglayer_id = layer_manager->NewLayer()
+                        .SetWindow(bgwindow)
+                        .Move({0, 0})
+                        .ID();
+  mouse_layer_id = layer_manager->NewLayer()
+                       .SetWindow(mouse_window)
+                       .Move({200, 200})
+                       .ID();
+
+  layer_manager->UpDown(bglayer_id, 0);
+  layer_manager->UpDown(mouse_layer_id, 1);
+  layer_manager->Draw();
 
   // event loop
   while (true) {

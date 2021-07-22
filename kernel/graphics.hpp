@@ -45,8 +45,8 @@ public:
   FrameBufferWriter(const FrameBufferConfig& config) : config_{config} {
   }
   virtual ~FrameBufferWriter() = default;
-  virtual int Width() const override { return config_.horizontal_resolution; };
-  virtual int Height() const override { return config_.vertical_resolution; };
+  virtual int Width() const override { return config_.horizontal_resolution; }
+  virtual int Height() const override { return config_.vertical_resolution; }
 
 protected:
   uint8_t* PixelAt(int x, int y) {
@@ -70,3 +70,17 @@ public:
 
   virtual void Write(int x, int y, const PixelColor& c) override;
 };
+
+const PixelColor kDesktopBGColor{45, 118, 237};
+const PixelColor kDesktopFGColor = kColorWhite;
+const PixelColor kDesktopStartMenuBGColor = {80, 80, 80};
+const PixelColor kDesktopStartMenuFGColor = {160, 160, 160};
+const PixelColor kDesktopStatusBarColor = {1, 8, 17};
+
+const int kDesktopStatusBarHeight = 50;
+const int kDesktopStartMenuRatio = 5;
+const int kDesktopStartMenuMargin = 10;
+const int kDesktopStartMenuWidth = 30;
+const int kDesktopStartMenuHeight = 30;
+
+void DrawDesktop(PixelWriter& writer);

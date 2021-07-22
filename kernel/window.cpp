@@ -41,6 +41,10 @@ PixelColor& Window::At(int x, int y) {
   return data_[y][x];
 }
 
+const PixelColor& Window::At(int x, int y) const {
+  return data_[y][x];
+}
+
 int Window::Width() const {
   return width_;
 }

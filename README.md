@@ -407,3 +407,20 @@ Nand2Tetrisでは、allocateするときに確保したアドレスの先頭-1by
 
 - `grahpics.hpp` : クラス階層が変更されて、 `FrameBufferWriter` が導入された
 - `window.hpp` `window.cpp` : Windowクラスの実装。width x heightのピクセルデータを2次元配列で持つ
+
+レイヤーを導入する
+
+- `layer.hpp` `layer.cpp`
+  - `Layer` クラスは、 重ね合わす可能な表示領域を表す。作成した `Window` クラスを内部に保持している。
+  - `LayerManager` クラスは複数の `Layer` の重ね合わせを管理するクラス。
+
+
+マウスカーソルをWindowを使って描画するようにする。
+
+- `mouse.hpp` `mouse.cpp` : `MouseCursor` クラスは削除されて、`DrawMouseCursor` 関数で透過色を描画するようになった
+- `console.hpp` `console.cpp` : `Console` クラスでは writerの初期化を遅延させて、PixelWriterを後から変更できるようにした
+- `graphics.cpp` `grahpics.hpp` : デスクトップの描画処理( `DrawDesktop` ) がmainから移動している。
+- `main.cpp`
+  - `Console` の初期化処理と、Desktopウィンドウの初期化後にwriterの再設定を行うようにした
+  - 背景レイヤー(デスクトップ) とマウスレイヤーを用意して、それぞれを `LayerManager` で重ね合わせるようにした
+  - `MouseObserver` では、マウスレイヤーの相対位置を変更させて `layer_manager->Draw()` を呼び出すようにした

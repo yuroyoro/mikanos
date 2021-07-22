@@ -74,7 +74,7 @@ public:
    * 0 以上を指定するとその高さとなる。
    * 現在のレイヤー数以上の数値を指定した場合は最前面のレイヤーとなる。
    * */
-  void UpDown(unsigned int id, int new_hight);
+  void UpDown(unsigned int id, int new_height);
   void Hide(unsigned int id);
 
 private:
