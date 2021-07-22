@@ -26,6 +26,7 @@
 #include "pci.hpp"
 #include "queue.hpp"
 #include "segment.hpp"
+#include "timer.hpp"
 #include "window.hpp"
 
 #include "usb/classdriver/mouse.hpp"
@@ -40,6 +41,19 @@ PixelWriter* pixel_writer;
 char console_buf[sizeof(Console)];
 Console* console;
 
+int printk(const char* format, ...) {
+  va_list ap;
+  int result;
+  char s[1024];
+
+  va_start(ap, format);
+  result = vsprintf(s, format, ap);
+  va_end(ap);
+
+  console->PutString(s);
+  return result;
+}
+
 char memory_manager_buf[sizeof(BitmapMemoryManager)];
 BitmapMemoryManager* memory_manager;
 
@@ -47,7 +61,11 @@ unsigned int mouse_layer_id;
 
 void MouseObserver(int8_t displacement_x, int8_t displacement_y) {
   layer_manager->MoveRelative(mouse_layer_id, {displacement_x, displacement_y});
+  StartLAPICTimer();
   layer_manager->Draw();
+  auto elapsed = LAPICTimerElapsed();
+  StopLAPICTimer();
+  printk("MouseObserver: elapsed = %u\n", elapsed);
 }
 
 void SwitchEhci2Xhci(const pci::Device& xhc_dev) {
@@ -87,19 +105,6 @@ __attribute__((interrupt)) void IntHandlerXHCI(InterruptFrame* frame) {
   NotifyEndOfInterrupt();
 }
 
-int printk(const char* format, ...) {
-  va_list ap;
-  int result;
-  char s[1024];
-
-  va_start(ap, format);
-  result = vsprintf(s, format, ap);
-  va_end(ap);
-
-  console->PutString(s);
-  return result;
-}
-
 /* kernel stack */
 alignas(16) uint8_t kernel_main_stack[1024 * 1024];
 
@@ -130,6 +135,9 @@ extern "C" void KernelMainNewStack(
 
   printk("Welcome to MikanOS!\n");
   SetLogLevel(kWarn);
+
+  // initialize Local APIC Timer
+  IntializeLAPICTimer();
 
   // setup segment
   SetupSegments();
