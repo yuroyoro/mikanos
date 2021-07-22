@@ -433,3 +433,16 @@ Local APIC大麻は 0xfee00320 - 0xfee003e0 あたりのアドレスにマップ
 
 - `timer.hpp` `timer.cpp` : Local APIC大麻のレジスタを読み書きする関数。書き込み用のアドレスなのでコンパイル時に消えないようにvolataleがついてる
 - `main.cpp` : `MouseObserver` で `layer_manager->Draw()` の経過時間を測定できるようにする
+
+#### 9.5 重ね合わせ処理の高速化(osbook_day09c)
+
+フレームバッファと同じ内容を持つシャドウバッファを導入して、フレームバッファへの書き込みを高速化する。
+いわゆるダブルバッファリング。
+また、フレームバッファへの書き込みはmemcpyを利用して高速化を図る
+
+- `frame_buffer.hpp` `frame_buffer.cpp` : シャドウバッファを表現するクラス。 `FrameBufferConfig` でバッファの幅と高さを設定できるようになっている。また、 `config.frme_buffer` が設定されている場合はUEFI で取得した本来のフレームバッファへの書き込みを行うようになる。つまり、 UEFIのフレームバッファを持つ `FrameBufferConfig` のインスタンスに対して、 描画したい内容をシャドウバッファとして持つもうひとつの `FrameBuffer` インスタンスを `Copy` メソッドに渡すことで、部分的な領域の描画をmemcpyで行うようになるという仕掛けよ
+- `window.hpp` `window.cpp`: `Window` クラスはシャドウバッファを `FrameBuffer` インスンタンスで持つようにする。 `DrawTo` では書き込み先の `FrameBuffer` にシャドウバッファを渡すだけでバッファリングされた描画になる
+- `layer.hpp` `layer.cpp` : `PixelWriter` ではなく `FrameBuffer` を保持するようになっている
+- `graphics.cpp` `graphics.hpp` `mouse.cpp` `font.hpp` `font.cpp` `consle.cpp` `console.hpp` : 引数に `int x, int y` ではなく `Vector2D<int>` を受け取るようになっている
+- `main.cpp` : UEFIから渡されたフレームバッファを保持する `FrameBuffer` のインスタンスを生成して、 `LayerManager` の描画先に設定する
+

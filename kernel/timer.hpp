@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-void IntializeLAPICTimer();
+void InitializeLAPICTimer();
 void StartLAPICTimer();
 uint32_t LAPICTimerElapsed();
 void StopLAPICTimer();

@@ -19,7 +19,7 @@ void Console::PutString(const char* s) {
     if (*s == '\n') {
       Newline();
     } else if (cursor_column_ < kColumns - 1) {
-      WriteAscii(*writer_, kColumnWidth * cursor_column_, kRowHight * cursor_row_, *s, fg_color_);
+      WriteAscii(*writer_, Vector2D<int>{kColumnWidth * cursor_column_, kRowHight * cursor_row_}, *s, fg_color_);
       buffer_[cursor_row_][cursor_column_] = *s;
       ++cursor_column_;  // TODO: wrap and scroll
     }
@@ -53,7 +53,7 @@ void Console::Newline() {
     // shift buffer by one line
     memcpy(buffer_[row], buffer_[row + 1], kColumns + 1);
     // redraw
-    WriteString(*writer_, 0, kRowHight * row, buffer_[row], fg_color_);
+    WriteString(*writer_, Vector2D<int>{0, kRowHight * row}, buffer_[row], fg_color_);
   }
   memset(buffer_[kRows - 1], 0, kColumns);  // fill zero to last line buffer
 }
@@ -61,13 +61,13 @@ void Console::Newline() {
 void Console::Clear() {
   for (int y = 0; y < kRowHight * kRows; ++y) {
     for (int x = 0; x < kColumnWidth * kColumns; ++x) {
-      writer_->Write(x, y, bg_color_);
+      writer_->Write(Vector2D<int>{x, y}, bg_color_);
     }
   }
 }
 
 void Console::Refresh() {
   for (int row = 0; row < kRows; ++row) {
-    WriteString(*writer_, 0, kRowHight * row, buffer_[row], fg_color_);
+    WriteString(*writer_, Vector2D<int>{0, kRowHight * row}, buffer_[row], fg_color_);
   }
 }
