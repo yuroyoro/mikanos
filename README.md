@@ -446,3 +446,6 @@ Local APIC大麻は 0xfee00320 - 0xfee003e0 あたりのアドレスにマップ
 - `graphics.cpp` `graphics.hpp` `mouse.cpp` `font.hpp` `font.cpp` `consle.cpp` `console.hpp` : 引数に `int x, int y` ではなく `Vector2D<int>` を受け取るようになっている
 - `main.cpp` : UEFIから渡されたフレームバッファを保持する `FrameBuffer` のインスタンスを生成して、 `LayerManager` の描画先に設定する
 
+#### 9.6 スクロール処理の時間計測(osbook_day09d)
+
+ログ仕込むだけ
