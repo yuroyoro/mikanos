@@ -449,3 +449,13 @@ Local APIC大麻は 0xfee00320 - 0xfee003e0 あたりのアドレスにマップ
 #### 9.6 スクロール処理の時間計測(osbook_day09d)
 
 ログ仕込むだけ
+
+#### 9.7 スクロール処理の高速化(osbook_day09e)
+
+`Console` クラスのスクロール処理を高速化する。今までは表示している各行の文字データを保持しており、スクロール時には一度画面をクリアしてから一行分ずらして再描画していた。
+
+- `graphic.hpp` : `Rectangle` 構造体とユーティリティ関数を追加
+- `farme_buffer.hpp` `frame_buffer.cpp` :  Move関数とユーティリティ関数を追加。あとリファクタリング
+- `window.hpp` `window.cpp` : シャドウバッファを移動させるMove関数
+- `console.hpp` `console.cpp` : `Window` をメンバに持つようにし、描画はwindowに移譲する。 `NewLine` では `Move` 関数でシャドウバッファを移動させるように実装を修正
+- `main.cpp` : 背景の `Window` を `Console` に設定する。これでコンソールの出力先がデスクトップを描画している背景Windowになる。

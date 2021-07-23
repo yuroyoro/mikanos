@@ -11,7 +11,7 @@
 #include "layer.hpp"
 
 Console::Console(const PixelColor& fg_color, const PixelColor& bg_color)
-    : writer_{nullptr}, fg_color_{fg_color}, bg_color_{bg_color}, buffer_{}, cursor_row_{0}, cursor_column_{0} {
+    : writer_{nullptr}, window_{}, fg_color_{fg_color}, bg_color_{bg_color}, buffer_{}, cursor_row_{0}, cursor_column_{0} {
 }
 
 void Console::PutString(const char* s) {
@@ -35,6 +35,17 @@ void Console::SetWriter(PixelWriter* writer) {
     return;
   }
   writer_ = writer;
+  window_.reset();
+  Refresh();
+}
+
+void Console::SetWindow(const std::shared_ptr<Window>& window) {
+  if (window == window_) {
+    return;
+  }
+
+  window_ = window;
+  writer_ = window->Writer();
   Refresh();
 }
 
@@ -42,6 +53,13 @@ void Console::Newline() {
   cursor_column_ = 0;
   if (cursor_row_ < kRows - 1) {
     ++cursor_row_;
+    return;
+  }
+
+  if (window_) {
+    Rectangle<int> move_src{{0, kRowHight}, {kColumnWidth * kColumns, kRowHight * (kRows - 1)}};
+    window_->Move({0, 0}, move_src);
+    FillRectangle(*writer_, {0, kRowHight * (kRows - 1)}, {kColumnWidth * kColumns, kRowHight}, bg_color_);
     return;
   }
 
@@ -59,11 +77,7 @@ void Console::Newline() {
 }
 
 void Console::Clear() {
-  for (int y = 0; y < kRowHight * kRows; ++y) {
-    for (int x = 0; x < kColumnWidth * kColumns; ++x) {
-      writer_->Write(Vector2D<int>{x, y}, bg_color_);
-    }
-  }
+  FillRectangle(*writer_, {0, 0}, {kColumnWidth * kColumns, kRowHight * kRows}, bg_color_);
 }
 
 void Console::Refresh() {
