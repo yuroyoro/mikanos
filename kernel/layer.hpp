@@ -81,7 +81,6 @@ public:
    * 現在のレイヤー数以上の数値を指定した場合は最前面のレイヤーとなる。
    * */
   void UpDown(unsigned int id, int new_height);
-  /** @brief レイヤーを非表示とする。 */
   void Hide(unsigned int id);
 
 private:
@@ -91,6 +90,7 @@ private:
   unsigned int latest_id_{0};
 
   Layer* FindLayer(unsigned int id);
+  mutable FrameBuffer back_buffer_{};
 };
 
 extern LayerManager* layer_manager;

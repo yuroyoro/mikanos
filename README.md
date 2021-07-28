@@ -495,6 +495,14 @@ Local APIC大麻は 0xfee00320 - 0xfee003e0 あたりのアドレスにマップ
 - `console.hpp` `console.cpp` : layer idを保持して描画時に指定するように
 - `main.cpp` : consoleのlayer設定と、mainウィンドウの描画領域を指定する
 
+#### 10.5 バックバッファ(osbook_day10e)
+
+レイヤー描画時にさらにバッファリングを行うことで、複数のレイヤーが重なっている状態での描画パフォーマンスを向上させる
+
+- `frame_buffer.hpp`  : config を返すアクセサを追加
+- `layer.hpp` `layer.cpp` : レイヤー描画時に、重なっているレイヤーの描画は一度バックバッファ(FrameBuffer) に書き込んでから実際の描画用UEFIフレームバッファへコピーする
+
+
 
 
 
