@@ -459,3 +459,15 @@ Local APIC大麻は 0xfee00320 - 0xfee003e0 あたりのアドレスにマップ
 - `window.hpp` `window.cpp` : シャドウバッファを移動させるMove関数
 - `console.hpp` `console.cpp` : `Window` をメンバに持つようにし、描画はwindowに移譲する。 `NewLine` では `Move` 関数でシャドウバッファを移動させるように実装を修正
 - `main.cpp` : 背景の `Window` を `Console` に設定する。これでコンソールの出力先がデスクトップを描画している背景Windowになる。
+
+
+### 第10章 ウィンドウ
+
+ウィンドウを実装するぞ。GUIが出てくるとOSっぽいな
+
+#### 10.1 もっとマウス(osbook_day10a)
+
+マウスがデスクトップをはみ出さないようにする。
+
+- `window.cpp` : 描画領域外に描画しないようにする
+
