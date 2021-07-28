@@ -288,6 +288,12 @@ extern "C" void KernelMainNewStack(
   DrawMouseCursor(mouse_window->Writer(), {0, 0});
   mouse_poisition = {200, 200};
 
+  auto main_window = std::make_shared<Window>(
+      168, 68, frame_buffer_config.pixel_format);
+  DrawWindow(*main_window->Writer(), "Hello Window");
+  WriteString(*main_window->Writer(), {24, 28}, "Welcome to", kColorBlack);
+  WriteString(*main_window->Writer(), {24, 44}, "MikanOS world!", kColorBlack);
+
   FrameBuffer screen;  // UEFI FrameBuffer
   if (auto err = screen.Initialize(frame_buffer_config)) {
     Log(kError, "failed to initialize frame buffer: %s at %s:%d\n",
@@ -306,8 +312,14 @@ extern "C" void KernelMainNewStack(
                        .Move(mouse_poisition)
                        .ID();
 
+  auto main_window_layer_id = layer_manager->NewLayer()
+                                  .SetWindow(main_window)
+                                  .Move({300, 300})
+                                  .ID();
+
   layer_manager->UpDown(bglayer_id, 0);
   layer_manager->UpDown(mouse_layer_id, 1);
+  layer_manager->UpDown(main_window_layer_id, 1);
   layer_manager->Draw();
 
   // event loop
