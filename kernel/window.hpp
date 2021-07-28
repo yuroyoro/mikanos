@@ -48,9 +48,9 @@ public:
    *
    * @param dst  描画先
    * @param pos  dst の左上を基準としたウィンドウの位置
-   * @param position  writer の左上を基準とした描画位置
+   * @param area  dst の左上を基準とした描画対象範囲
    */
-  void DrawTo(FrameBuffer& dst, Vector2D<int> position, const Rectangle<int>& area);
+  void DrawTo(FrameBuffer& dst, Vector2D<int> pos, const Rectangle<int>& area);
 
   /** @brief 透過色を設定する。 */
   void SetTransparentColor(std::optional<PixelColor> c);
