@@ -58,15 +58,14 @@ BitmapMemoryManager* memory_manager;
 
 unsigned int mouse_layer_id;
 Vector2D<int> screen_size;
-Vector2D<int> mouse_poisition;
+Vector2D<int> mouse_position;
 
 void MouseObserver(int8_t displacement_x, int8_t displacement_y) {
-  auto newpos = mouse_poisition + Vector2D<int>{displacement_x, displacement_y};
+  auto newpos = mouse_position + Vector2D<int>{displacement_x, displacement_y};
   newpos = ElementMin(newpos, screen_size + Vector2D<int>{-1, -1});
-  mouse_poisition = ElementMax(newpos, {0, 0});
+  mouse_position = ElementMax(newpos, {0, 0});
 
-  layer_manager->Move(mouse_layer_id, mouse_poisition);
-  layer_manager->Draw();
+  layer_manager->Move(mouse_layer_id, mouse_position);
 }
 
 void SwitchEhci2Xhci(const pci::Device& xhc_dev) {
@@ -280,17 +279,20 @@ extern "C" void KernelMainNewStack(
   auto bgwriter = bgwindow->Writer();
 
   DrawDesktop(*bgwriter);
-  console->SetWindow(bgwindow);
 
   auto mouse_window = std::make_shared<Window>(
       kMouseCursorWidth, kMouseCursorHeight, frame_buffer_config.pixel_format);
   mouse_window->SetTransparentColor(kMouseTransparentColor);
   DrawMouseCursor(mouse_window->Writer(), {0, 0});
-  mouse_poisition = {200, 200};
+  mouse_position = {200, 200};
 
   auto main_window = std::make_shared<Window>(
       160, 52, frame_buffer_config.pixel_format);
   DrawWindow(*main_window->Writer(), "Hello Window");
+
+  auto console_window = std::make_shared<Window>(
+      Console::kColumns * Console::kColumnWidth, Console::kRows * Console::kRowHight, frame_buffer_config.pixel_format);
+  console->SetWindow(console_window);
 
   FrameBuffer screen;  // UEFI FrameBuffer
   if (auto err = screen.Initialize(frame_buffer_config)) {
@@ -307,7 +309,7 @@ extern "C" void KernelMainNewStack(
                         .ID();
   mouse_layer_id = layer_manager->NewLayer()
                        .SetWindow(mouse_window)
-                       .Move(mouse_poisition)
+                       .Move(mouse_position)
                        .ID();
 
   auto main_window_layer_id = layer_manager->NewLayer()
@@ -315,10 +317,16 @@ extern "C" void KernelMainNewStack(
                                   .Move({300, 300})
                                   .ID();
 
+  console->SetLayerID(layer_manager->NewLayer()
+                          .SetWindow(console_window)
+                          .Move({0, 0})
+                          .ID());
+
   layer_manager->UpDown(bglayer_id, 0);
-  layer_manager->UpDown(mouse_layer_id, 1);
-  layer_manager->UpDown(main_window_layer_id, 1);
-  layer_manager->Draw();
+  layer_manager->UpDown(console->LayerID(), 1);
+  layer_manager->UpDown(main_window_layer_id, 2);
+  layer_manager->UpDown(mouse_layer_id, 3);
+  layer_manager->Draw({{0, 0}, screen_size});
 
   char str[128];
   unsigned int count = 0;
@@ -326,10 +334,10 @@ extern "C" void KernelMainNewStack(
   // event loop
   while (true) {
     ++count;
-    sprintf(str, "%01u", count);
+    sprintf(str, "%010u", count);
     FillRectangle(*main_window->Writer(), {24, 28}, {8 * 10, 16}, {0xc6, 0xc6, 0xc6});
-    WriteString(*main_window->Writer(), {23, 28}, str, kColorBlack);
-    layer_manager->Draw();
+    WriteString(*main_window->Writer(), {24, 28}, str, kColorBlack);
+    layer_manager->Draw(main_window_layer_id);
 
     __asm__("cli");
 

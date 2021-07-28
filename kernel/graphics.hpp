@@ -13,6 +13,27 @@ struct Vector2D {
     y += rhs.y;
     return *this;
   }
+
+  template <typename U>
+  Vector2D<T> operator+(const Vector2D<U>& rhs) const {
+    auto tmp = *this;
+    tmp += rhs;
+    return tmp;
+  }
+
+  template <typename U>
+  Vector2D<T>& operator-=(const Vector2D<U>& rhs) {
+    x -= rhs.x;
+    y -= rhs.y;
+    return *this;
+  }
+
+  template <typename U>
+  Vector2D<T> operator-(const Vector2D<U>& rhs) const {
+    auto tmp = *this;
+    tmp -= rhs;
+    return tmp;
+  }
 };
 
 template <typename T, typename U>
@@ -35,6 +56,20 @@ template <typename T>
 struct Rectangle {
   Vector2D<T> pos, size;
 };
+
+template <typename T, typename U>
+Rectangle<T> operator&(const Rectangle<T>& lhs, const Rectangle<U>& rhs) {
+  const auto lhs_end = lhs.pos + lhs.size;
+  const auto rhs_end = rhs.pos + rhs.size;
+  if (lhs_end.x < rhs.pos.x || lhs_end.y < rhs.pos.y ||
+      rhs_end.x < lhs.pos.x || rhs_end.y < lhs.pos.y) {
+    return {{0, 0}, {0, 0}};
+  }
+
+  auto new_pos = ElementMax(lhs.pos, rhs.pos);
+  auto new_size = ElementMin(lhs_end, rhs_end) - new_pos;
+  return {new_pos, new_size};
+}
 
 struct PixelColor {
   uint8_t r, g, b;

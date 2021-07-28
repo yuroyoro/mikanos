@@ -484,5 +484,17 @@ Local APIC大麻は 0xfee00320 - 0xfee003e0 あたりのアドレスにマップ
 10.2で作ったウィンドウの文字列の代わりにループカウンタを表示するように、mainのイベントループ内に仕込む
 チラツキがひどい
 
+#### 10.4 チラチラ解消(osbook_day10d)
+
+ウィンドウ描画を高速化する。今までは全レイヤーを下から順番に再描画していたが、ウィンドウのみ描画するようにする
+
+- `graphics.hpp` : `Rectangle` の `&` 演算子をオーバーライドして2つの矩形の交差領域を求めることができるようにする
+- `frame_buffer.hpp` `frame_buffer.cpp` : `Copy` 関数がコピー元の部分領域を指定できるようにする
+- `window.hpp` `window.cpp` : `DrawTo` に描画領域を指定できるようにする
+- `layer.hpp` `layer.cpp` : ウィンドウの描画時に描画領域を指定する。 レイヤーの移動時に再描画する
+- `console.hpp` `console.cpp` : layer idを保持して描画時に指定するように
+- `main.cpp` : consoleのlayer設定と、mainウィンドウの描画領域を指定する
+
+
 
 
