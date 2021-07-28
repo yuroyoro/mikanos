@@ -289,10 +289,8 @@ extern "C" void KernelMainNewStack(
   mouse_poisition = {200, 200};
 
   auto main_window = std::make_shared<Window>(
-      168, 68, frame_buffer_config.pixel_format);
+      160, 52, frame_buffer_config.pixel_format);
   DrawWindow(*main_window->Writer(), "Hello Window");
-  WriteString(*main_window->Writer(), {24, 28}, "Welcome to", kColorBlack);
-  WriteString(*main_window->Writer(), {24, 44}, "MikanOS world!", kColorBlack);
 
   FrameBuffer screen;  // UEFI FrameBuffer
   if (auto err = screen.Initialize(frame_buffer_config)) {
@@ -322,12 +320,21 @@ extern "C" void KernelMainNewStack(
   layer_manager->UpDown(main_window_layer_id, 1);
   layer_manager->Draw();
 
+  char str[128];
+  unsigned int count = 0;
+
   // event loop
   while (true) {
+    ++count;
+    sprintf(str, "%01u", count);
+    FillRectangle(*main_window->Writer(), {24, 28}, {8 * 10, 16}, {0xc6, 0xc6, 0xc6});
+    WriteString(*main_window->Writer(), {23, 28}, str, kColorBlack);
+    layer_manager->Draw();
+
     __asm__("cli");
 
     if (main_queue.Count() == 0) {  // no event in queue
-      __asm__("sti\nhlt");
+      __asm__("sti");
       continue;
     }
 
