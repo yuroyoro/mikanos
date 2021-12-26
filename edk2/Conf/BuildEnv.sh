@@ -7,10 +7,10 @@ if [ -z "$EDK_TOOLS_PATH" ]
 then
   export EDK_TOOLS_PATH=/home/vscode/edk2/BaseTools
 fi
-if [ -e /home/vscode/edk2/BaseTools/Bin/Linux-x86_64 ]
+if [ -e /home/vscode/edk2/BaseTools/Bin/Linux-aarch64 ]
 then
-  if [ ${PATH//home/vscode/edk2/BaseTools/Bin/Linux-x86_64/} == $PATH ]
+  if [ ${PATH//home/vscode/edk2/BaseTools/Bin/Linux-aarch64/} == $PATH ]
   then
-    export PATH=/home/vscode/edk2/BaseTools/Bin/Linux-x86_64:$PATH
+    export PATH=/home/vscode/edk2/BaseTools/Bin/Linux-aarch64:$PATH
   fi
 fi
