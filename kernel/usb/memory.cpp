@@ -12,7 +12,7 @@ namespace {
   T MaskBits(T value, U mask) {
     return value & ~static_cast<T>(mask - 1);
   }
-}
+}  // namespace
 
 namespace usb {
   alignas(64) uint8_t memory_pool[kMemoryPoolSize];
@@ -29,8 +29,7 @@ namespace usb {
       }
     }
 
-    if (reinterpret_cast<uintptr_t>(memory_pool) + kMemoryPoolSize
-        < alloc_ptr + size) {
+    if (reinterpret_cast<uintptr_t>(memory_pool) + kMemoryPoolSize < alloc_ptr + size) {
       return nullptr;
     }
 
@@ -40,4 +39,4 @@ namespace usb {
   }
 
   void FreeMem(void* p) {}
-}
+}  // namespace usb

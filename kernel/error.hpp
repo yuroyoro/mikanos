@@ -1,7 +1,7 @@
 #pragma once
 
-#include <array>
 #include <cstdio>
+#include <array>
 
 class Error {
 public:

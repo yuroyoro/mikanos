@@ -33,8 +33,7 @@ namespace usb::xhci {
       // data[0..2] must be written prior to data[3].
       buf_[write_index_].data[i] = data[i];
     }
-    buf_[write_index_].data[3]
-      = (data[3] & 0xfffffffeu) | static_cast<uint32_t>(cycle_bit_);
+    buf_[write_index_].data[3] = (data[3] & 0xfffffffeu) | static_cast<uint32_t>(cycle_bit_);
   }
 
   TRB* Ring::Push(const std::array<uint32_t, 4>& data) {
@@ -102,8 +101,7 @@ namespace usb::xhci {
   void EventRing::Pop() {
     auto p = ReadDequeuePointer() + 1;
 
-    TRB* segment_begin
-      = reinterpret_cast<TRB*>(erst_[0].bits.ring_segment_base_address);
+    TRB* segment_begin = reinterpret_cast<TRB*>(erst_[0].bits.ring_segment_base_address);
     TRB* segment_end = segment_begin + erst_[0].bits.ring_segment_size;
 
     if (p == segment_end) {
@@ -113,4 +111,4 @@ namespace usb::xhci {
 
     WriteDequeuePointer(p);
   }
-}
+}  // namespace usb::xhci

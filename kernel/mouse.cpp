@@ -29,7 +29,7 @@ namespace {
       "         @.@   ",
       "         @@@   ",
   };
-}  // namespace
+}
 
 void DrawMouseCursor(PixelWriter* pixel_writer, Vector2D<int> position) {
   for (int dy = 0; dy < kMouseCursorHeight; ++dy) {

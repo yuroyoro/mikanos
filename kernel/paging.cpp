@@ -1,6 +1,7 @@
 #include "paging.hpp"
 
 #include <array>
+
 #include "asmfunc.h"
 
 namespace {
@@ -10,7 +11,8 @@ namespace {
 
   alignas(kPageSize4K) std::array<uint64_t, 512> pml4_table;
   alignas(kPageSize4K) std::array<uint64_t, 512> pdp_table;
-  alignas(kPageSize4K) std::array<std::array<uint64_t, 512>, kPageDirectoryCount> page_directory;
+  alignas(kPageSize4K)
+      std::array<std::array<uint64_t, 512>, kPageDirectoryCount> page_directory;
 }  // namespace
 
 void SetupIdentityPageTable() {

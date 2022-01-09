@@ -77,7 +77,7 @@ namespace usb::xhci {
     }
 
     devices_[slot_id] = AllocArray<Device>(1, 64, 4096);
-    new(devices_[slot_id]) Device(slot_id, dbreg);
+    new (devices_[slot_id]) Device(slot_id, dbreg);
     return MAKE_ERROR(Error::kSuccess);
   }
 
@@ -97,4 +97,4 @@ namespace usb::xhci {
     devices_[slot_id] = nullptr;
     return MAKE_ERROR(Error::kSuccess);
   }
-}
+}  // namespace usb::xhci

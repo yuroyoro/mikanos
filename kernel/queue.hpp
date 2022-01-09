@@ -1,7 +1,7 @@
 #pragma once
 
-#include <array>
 #include <cstddef>
+#include <array>
 
 #include "error.hpp"
 
@@ -35,7 +35,8 @@ ArrayQueue<T>::ArrayQueue(std::array<T, N>& buf) : ArrayQueue(buf.data(), N) {}
 
 template <typename T>
 ArrayQueue<T>::ArrayQueue(T* buf, size_t size)
-    : data_{buf}, read_pos_{0}, write_pos_{0}, count_{0}, capacity_{size} {}
+    : data_{buf}, read_pos_{0}, write_pos_{0}, count_{0}, capacity_{size}
+ {}
 
 template <typename T>
 Error ArrayQueue<T>::Push(const T& value) {

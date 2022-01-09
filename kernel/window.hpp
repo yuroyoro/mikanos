@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include <optional>
 #include <vector>
-#include "frame_buffer.hpp"
+#include <optional>
 #include "graphics.hpp"
+#include "frame_buffer.hpp"
 
 /** @brief Window クラスはグラフィックの表示領域を表す。
  *
@@ -44,7 +44,7 @@ public:
   Window(const Window& rhs) = delete;
   Window& operator=(const Window& rhs) = delete;
 
-  /** @brief 与えられた FrameBufferにこのウィンドウの表示領域を描画する。
+  /** @brief 与えられた FrameBuffer にこのウィンドウの表示領域を描画する。
    *
    * @param dst  描画先
    * @param pos  dst の左上を基準としたウィンドウの位置

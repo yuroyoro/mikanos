@@ -1,18 +1,17 @@
-#include <Guid/FileInfo.h>
-#include <Library/BaseMemoryLib.h>
-#include <Library/MemoryAllocationLib.h>
-#include <Library/PrintLib.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Library/UefiLib.h>
-#include <Protocol/BlockIo.h>
-#include <Protocol/DiskIo2.h>
-#include <Protocol/LoadedImage.h>
-#include <Protocol/SimpleFileSystem.h>
-#include <Uefi.h>
-
-#include "elf.hpp"
-#include "frame_buffer_config.hpp"
-#include "memory_map.hpp"
+#include  <Uefi.h>
+#include  <Library/UefiLib.h>
+#include  <Library/UefiBootServicesTableLib.h>
+#include  <Library/PrintLib.h>
+#include  <Library/MemoryAllocationLib.h>
+#include  <Library/BaseMemoryLib.h>
+#include  <Protocol/LoadedImage.h>
+#include  <Protocol/SimpleFileSystem.h>
+#include  <Protocol/DiskIo2.h>
+#include  <Protocol/BlockIo.h>
+#include  <Guid/FileInfo.h>
+#include  "frame_buffer_config.hpp"
+#include  "memory_map.hpp"
+#include  "elf.hpp"
 
 EFI_STATUS GetMemoryMap(struct MemoryMap* map) {
   if (map->buffer == NULL) {
@@ -31,40 +30,23 @@ EFI_STATUS GetMemoryMap(struct MemoryMap* map) {
 // table for memory type label
 const CHAR16* GetMemoryTypeUnicode(EFI_MEMORY_TYPE type) {
   switch (type) {
-    case EfiReservedMemoryType:
-      return L"EfiReservedMemoryType";
-    case EfiLoaderCode:
-      return L"EfiLoaderCode";
-    case EfiLoaderData:
-      return L"EfiLoaderData";
-    case EfiBootServicesCode:
-      return L"EfiBootServicesCode";
-    case EfiBootServicesData:
-      return L"EfiBootServicesData";
-    case EfiRuntimeServicesCode:
-      return L"EfiRuntimeServicesCode";
-    case EfiRuntimeServicesData:
-      return L"EfiRuntimeServicesData";
-    case EfiConventionalMemory:
-      return L"EfiConventionalMemory";
-    case EfiUnusableMemory:
-      return L"EfiUnusableMemory";
-    case EfiACPIReclaimMemory:
-      return L"EfiACPIReclaimMemory";
-    case EfiACPIMemoryNVS:
-      return L"EfiACPIMemoryNVS";
-    case EfiMemoryMappedIO:
-      return L"EfiMemoryMappedIO";
-    case EfiMemoryMappedIOPortSpace:
-      return L"EfiMemoryMappedIOPortSpace";
-    case EfiPalCode:
-      return L"EfiPalCode";
-    case EfiPersistentMemory:
-      return L"EfiPersistentMemory";
-    case EfiMaxMemoryType:
-      return L"EfiMaxMemoryType";
-    default:
-      return L"InvalidMemoryType";
+    case EfiReservedMemoryType: return L"EfiReservedMemoryType";
+    case EfiLoaderCode: return L"EfiLoaderCode";
+    case EfiLoaderData: return L"EfiLoaderData";
+    case EfiBootServicesCode: return L"EfiBootServicesCode";
+    case EfiBootServicesData: return L"EfiBootServicesData";
+    case EfiRuntimeServicesCode: return L"EfiRuntimeServicesCode";
+    case EfiRuntimeServicesData: return L"EfiRuntimeServicesData";
+    case EfiConventionalMemory: return L"EfiConventionalMemory";
+    case EfiUnusableMemory: return L"EfiUnusableMemory";
+    case EfiACPIReclaimMemory: return L"EfiACPIReclaimMemory";
+    case EfiACPIMemoryNVS: return L"EfiACPIMemoryNVS";
+    case EfiMemoryMappedIO: return L"EfiMemoryMappedIO";
+    case EfiMemoryMappedIOPortSpace: return L"EfiMemoryMappedIOPortSpace";
+    case EfiPalCode: return L"EfiPalCode";
+    case EfiPersistentMemory: return L"EfiPersistentMemory";
+    case EfiMaxMemoryType: return L"EfiMaxMemoryType";
+    default: return L"InvalidMemoryType";
   }
 }
 
@@ -83,7 +65,8 @@ EFI_STATUS SaveMemoryMap(struct MemoryMap* map, EFI_FILE_PROTOCOL* file) {
     return status;
   }
 
-  Print(L"map->buffer = %08lx, map->map_size = %08lx\n", map->buffer, map->map_size);
+  Print(L"map->buffer = %08lx, map->map_size = %08lx\n",
+      map->buffer, map->map_size);
 
   EFI_PHYSICAL_ADDRESS iter;
   int i;
@@ -348,20 +331,19 @@ EFI_STATUS FillScreen(EFI_HANDLE image_handle, EFI_GRAPHICS_OUTPUT_PROTOCOL** go
 }
 
 void Halt(void) {
-  while (1)
-    __asm__("hlt");
+  while (1) __asm__("hlt");
 }
 
 EFI_STATUS EFIAPI UefiMain(
     EFI_HANDLE image_handle,
     EFI_SYSTEM_TABLE* system_table) {
+  EFI_STATUS status;
   Print(L"Hello, Mikan World!\n");
 
   // get memroy map
   CHAR8 memmap_buf[4096 * 4];
   struct MemoryMap memmap = {sizeof(memmap_buf), memmap_buf, 0, 0, 0, 0};
 
-  EFI_STATUS status;
   status = GetMemoryMap(&memmap);
   if (EFI_ERROR(status)) {
     Print(L"Failed to GetMemoryMap: %r\n", status);
@@ -428,7 +410,8 @@ EFI_STATUS EFIAPI UefiMain(
       gop->Mode->Info->PixelsPerScanLine,
       gop->Mode->Info->HorizontalResolution,
       gop->Mode->Info->VerticalResolution,
-      0};
+      0
+  };
   switch (gop->Mode->Info->PixelFormat) {
     case PixelRedGreenBlueReserved8BitPerColor:
       config.pixel_format = kPixelRGBResv8BitPerColor;
@@ -448,7 +431,6 @@ EFI_STATUS EFIAPI UefiMain(
 
   Print(L"All done\n");
 
-  while (1)
-    ;
+  while (1);
   return EFI_SUCCESS;
 }

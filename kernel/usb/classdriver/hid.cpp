@@ -1,14 +1,12 @@
 #include "usb/classdriver/hid.hpp"
 
 #include <algorithm>
-#include "usb/device.hpp"
 #include "logger.hpp"
+#include "usb/device.hpp"
 
 namespace usb {
-  HIDBaseDriver::HIDBaseDriver(Device* dev, int interface_index,
-                               int in_packet_size)
-      : ClassDriver{dev}, interface_index_{interface_index},
-        in_packet_size_{in_packet_size} {
+  HIDBaseDriver::HIDBaseDriver(Device* dev, int interface_index, int in_packet_size)
+      : ClassDriver{dev}, interface_index_{interface_index}, in_packet_size_{in_packet_size} {
   }
 
   Error HIDBaseDriver::Initialize() {
@@ -30,7 +28,7 @@ namespace usb {
     setup_data.request_type.bits.type = request_type::kClass;
     setup_data.request_type.bits.recipient = request_type::kInterface;
     setup_data.request = request::kSetProtocol;
-    setup_data.value = 0; // boot protocol
+    setup_data.value = 0;  // boot protocol
     setup_data.index = interface_index_;
     setup_data.length = 0;
 
@@ -38,8 +36,7 @@ namespace usb {
     return ParentDevice()->ControlOut(kDefaultControlPipeID, setup_data, nullptr, 0, this);
   }
 
-  Error HIDBaseDriver::OnControlCompleted(EndpointID ep_id, SetupData setup_data,
-                                          const void* buf, int len) {
+  Error HIDBaseDriver::OnControlCompleted(EndpointID ep_id, SetupData setup_data, const void* buf, int len) {
     Log(kDebug, "HIDBaseDriver::OnControlCompleted: dev %08x, phase = %d, len = %d\n",
         this, initialize_phase_, len);
     if (initialize_phase_ == 1) {
@@ -59,5 +56,4 @@ namespace usb {
 
     return MAKE_ERROR(Error::kNotImplemented);
   }
-}
-
+}  // namespace usb

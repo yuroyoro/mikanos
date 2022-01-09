@@ -23,7 +23,7 @@ namespace {
   constexpr unsigned long long operator""_GiB(unsigned long long gib) {
     return gib * 1024_MiB;
   }
-}  // namespace
+}
 
 /** @brief 物理メモリフレーム 1 つの大きさ（バイト） */
 static const auto kBytesPerFrame{4_KiB};

@@ -8,12 +8,12 @@
 
 #include <array>
 #include <cstdint>
+
 #include "x86_descriptor.hpp"
 
 union InterruptDescriptorAttribute {
   uint16_t data;
-  struct
-  {
+  struct {
     uint16_t interrupt_stack_table : 3;
     uint16_t : 5;
     DescriptorType type : 4;
@@ -48,11 +48,10 @@ constexpr InterruptDescriptorAttribute MakeIDTAttr(
   return attr;
 }
 
-void SetIDTEntry(
-    InterruptDescriptor& desc,
-    InterruptDescriptorAttribute attr,
-    uint64_t offset,
-    uint16_t segment_selector);
+void SetIDTEntry(InterruptDescriptor& desc,
+                 InterruptDescriptorAttribute attr,
+                 uint64_t offset,
+                 uint16_t segment_selector);
 
 class InterruptVector {
 public:

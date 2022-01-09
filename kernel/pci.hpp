@@ -3,10 +3,11 @@
  *
  * PCI バス制御のプログラムを集めたファイル．
  */
+
 #pragma once
 
-#include <array>
 #include <cstdint>
+#include <array>
 
 #include "error.hpp"
 
@@ -97,7 +98,7 @@ namespace pci {
     return 0x10 + 4 * bar_index;
   }
 
-  WithError<uint64_t> ReadBar(Device& dev, unsigned int bar_index);
+  WithError<uint64_t> ReadBar(Device& device, unsigned int bar_index);
 
   /** @brief PCI ケーパビリティレジスタの共通ヘッダ */
   union CapabilityHeader {
@@ -137,7 +138,7 @@ namespace pci {
         uint32_t per_vector_mask_capable : 1;
         uint32_t : 7;
       } __attribute__((packed)) bits;
-    } __attribute__((packed)) header;
+    } __attribute__((packed)) header ;
 
     uint32_t msg_addr;
     uint32_t msg_upper_addr;
@@ -153,7 +154,8 @@ namespace pci {
 	 * @param msg_data  割り込み発生時に書き込むメッセージの値
 	 * @param num_vector_exponent  割り当てるベクタ数（2^n の n を指定）
 	 */
-  Error ConfigureMSI(const Device& dev, uint32_t msg_addr, uint32_t msg_data, unsigned int num_vector_exponent);
+  Error ConfigureMSI(const Device& dev, uint32_t msg_addr, uint32_t msg_data,
+                     unsigned int num_vector_exponent);
 
   enum class MSITriggerMode {
     kEdge = 0,
@@ -161,19 +163,16 @@ namespace pci {
   };
 
   enum class MSIDeliveryMode {
-    kFixed = 0b000,
+    kFixed          = 0b000,
     kLowestPriority = 0b001,
-    kSMI = 0b010,
-    kNMI = 0b100,
-    kINIT = 0b101,
-    kExtINT = 0b111,
+    kSMI            = 0b010,
+    kNMI            = 0b100,
+    kINIT           = 0b101,
+    kExtINT         = 0b111,
   };
 
   Error ConfigureMSIFixedDestination(
-      const Device& dev,
-      uint8_t apic_id,
-      MSITriggerMode trigger_mode,
-      MSIDeliveryMode delivery_mode,
-      uint8_t vector,
-      unsigned int num_vector_exponent);
-}  // namespace pci
+      const Device& dev, uint8_t apic_id,
+      MSITriggerMode trigger_mode, MSIDeliveryMode delivery_mode,
+      uint8_t vector, unsigned int num_vector_exponent);
+}

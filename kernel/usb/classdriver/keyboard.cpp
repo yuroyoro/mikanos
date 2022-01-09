@@ -1,8 +1,8 @@
 #include "usb/classdriver/keyboard.hpp"
 
 #include <algorithm>
-#include "usb/memory.hpp"
 #include "usb/device.hpp"
+#include "usb/memory.hpp"
 
 namespace usb {
   HIDKeyboardDriver::HIDKeyboardDriver(Device* dev, int interface_index)
@@ -33,7 +33,7 @@ namespace usb {
   }
 
   void HIDKeyboardDriver::SubscribeKeyPush(
-      std::function<void (uint8_t keycode)> observer) {
+      std::function<void(uint8_t keycode)> observer) {
     observers_[num_observers_++] = observer;
   }
 
@@ -44,5 +44,4 @@ namespace usb {
       observers_[i](keycode);
     }
   }
-}
-
+}  // namespace usb

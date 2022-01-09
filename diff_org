@@ -1,0 +1,36 @@
+#!/bin/bash
+
+DIFF_DIR=/tmp/mikanos
+
+if [ ! -e $DIFF_DIR ]; then
+   cp -r $HOME/mikanos /tmp
+fi
+
+TAG=$1
+current=$(cat "${DIFF_DIR}/current-tag")
+
+if [ "${TAG}" != "${current}" ]; then
+    cd $DIFF_DIR
+	git reset --hard $TAG
+	cp /workspaces/mikanos/.clang-format .
+	find .  -iname '*.h' -o -iname '*.cpp' | xargs clang-format -i
+	rm current-tag
+	echo "${TAG}" > current-tag
+	cd /workspaces/mikanos
+fi
+
+diff --exclude Makefile \
+     --exclude .clang-format \
+	 --exclude .devcontainer \
+	 --exclude disk.img \
+	 --exclude edk2 \
+	 --exclude .git \
+	 --exclude .gitignore  \
+	 --exclude mnt \
+	 --exclude README_FROM_TEMPLATE.md \
+	 --exclude README.md \
+	 --exclude .vscode \
+	 --exclude current-tag \
+	 --exclude diff_org \
+	 --exclude "*.o" \
+	 --color=always -p -E -Z -b -B -r . $DIFF_DIR | less -R

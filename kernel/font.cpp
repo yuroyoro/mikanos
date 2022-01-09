@@ -23,7 +23,6 @@ void WriteAscii(PixelWriter& writer, Vector2D<int> pos, char c, const PixelColor
   if (font == nullptr) {
     return;
   }
-
   for (int dy = 0; dy < 16; ++dy) {
     for (int dx = 0; dx < 8; ++dx) {
       if ((font[dy] << dx) & 0x80u) {

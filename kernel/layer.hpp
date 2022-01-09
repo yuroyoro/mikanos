@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <map>
 #include <memory>
+#include <map>
 #include <vector>
 
 #include "graphics.hpp"
@@ -49,11 +49,13 @@ public:
   /** @brief 指定された描画先にウィンドウの内容を描画する。 */
   void DrawTo(FrameBuffer& screen, const Rectangle<int>& area) const;
 
+  // #@@range_begin(fields)
 private:
   unsigned int id_;
   Vector2D<int> pos_;
   std::shared_ptr<Window> window_;
   bool draggable_{false};
+  // #@@range_end(fields)
 };
 
 /** @brief LayerManager は複数のレイヤーを管理する。 */
@@ -87,19 +89,20 @@ public:
    * 現在のレイヤー数以上の数値を指定した場合は最前面のレイヤーとなる。
    * */
   void UpDown(unsigned int id, int new_height);
+  /** @brief レイヤーを非表示とする。 */
   void Hide(unsigned int id);
 
   /** @brief 指定された座標にウィンドウを持つ最も上に表示されているレイヤーを探す。 */
-  Layer* FindLayerByPosition(Vector2D<int> pos, unsigned int exclud_id) const;
+  Layer* FindLayerByPosition(Vector2D<int> pos, unsigned int exclude_id) const;
 
 private:
   FrameBuffer* screen_{nullptr};
+  mutable FrameBuffer back_buffer_{};
   std::vector<std::unique_ptr<Layer>> layers_{};
   std::vector<Layer*> layer_stack_{};
   unsigned int latest_id_{0};
 
   Layer* FindLayer(unsigned int id);
-  mutable FrameBuffer back_buffer_{};
 };
 
 extern LayerManager* layer_manager;

@@ -5,7 +5,7 @@ namespace {
   Ptr AddOrNull(Ptr p, Disp d) {
     return d == 0 ? nullptr : p + d;
   }
-}
+}  // namespace
 
 namespace usb::xhci {
   ExtendedRegisterList::Iterator& ExtendedRegisterList::Iterator::operator++() {
@@ -18,6 +18,6 @@ namespace usb::xhci {
 
   ExtendedRegisterList::ExtendedRegisterList(uint64_t mmio_base,
                                              HCCPARAMS1_Bitmap hccp)
-    : first_{AddOrNull(reinterpret_cast<ValueType*>(mmio_base),
-                       hccp.bits.xhci_extended_capabilities_pointer)} {}
-}
+      : first_{AddOrNull(reinterpret_cast<ValueType*>(mmio_base),
+                         hccp.bits.xhci_extended_capabilities_pointer)} {}
+}  // namespace usb::xhci

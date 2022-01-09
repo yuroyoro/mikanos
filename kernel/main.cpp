@@ -26,13 +26,13 @@
 #include "pci.hpp"
 #include "queue.hpp"
 #include "segment.hpp"
-#include "window.hpp"
 
 #include "usb/classdriver/mouse.hpp"
 #include "usb/device.hpp"
 #include "usb/memory.hpp"
 #include "usb/xhci/trb.hpp"
 #include "usb/xhci/xhci.hpp"
+#include "window.hpp"
 
 char pixel_writer_buf[sizeof(RGBResv8BitPerColorPixelWriter)];
 PixelWriter* pixel_writer;
@@ -76,13 +76,15 @@ void MouseObserver(uint8_t buttons, int8_t displacement_x, int8_t displacement_y
   const bool previous_left_pressed = (previous_buttons & 0x01);
   const bool left_pressed = (buttons & 0x01);
   // mouse left pressed
+  // #@@range_begin(check_draggable)
   if (!previous_left_pressed && left_pressed) {
     auto layer = layer_manager->FindLayerByPosition(mouse_position, mouse_layer_id);
     if (layer && layer->IsDraggable()) {
       mouse_drag_layer_id = layer->ID();
     }
+    // #@@range_end(check_draggable)
     // continue pressed
-  } else if (previous_left_pressed && previous_left_pressed) {
+  } else if (previous_left_pressed && left_pressed) {
     if (mouse_drag_layer_id > 0) {
       layer_manager->MoveRelative(mouse_drag_layer_id, posdiff);
     }
@@ -111,8 +113,9 @@ void SwitchEhci2Xhci(const pci::Device& xhc_dev) {
   uint32_t superspeed_ports = pci::ReadConfReg(xhc_dev, 0xdc);  // USB3PRM
   pci::WriteConfReg(xhc_dev, 0xd8, superspeed_ports);           // USB3_PSSEN
   uint32_t ehci2xhci_ports = pci::ReadConfReg(xhc_dev, 0xd4);   // XUSB2PRM
-  pci::WriteConfReg(xhc_dev, 0xd0, ehci2xhci_ports);            // USB3_PSSEN
-  Log(kDebug, "SwitchEhci2Xhci:SS = %02, xHCI = %02x\n", superspeed_ports, ehci2xhci_ports);
+  pci::WriteConfReg(xhc_dev, 0xd0, ehci2xhci_ports);            // XUSB2PR
+  Log(kDebug, "SwitchEhci2Xhci: SS = %02, xHCI = %02x\n",
+      superspeed_ports, ehci2xhci_ports);
 }
 
 usb::xhci::Controller* xhc;
@@ -245,17 +248,15 @@ extern "C" void KernelMainNewStack(
   }
 
   // set XHCI interupt handler
-  SetIDTEntry(
-      idt[InterruptVector::kXHCI],
-      MakeIDTAttr(DescriptorType::kInterruptGate, 0),
-      reinterpret_cast<uint64_t>(IntHandlerXHCI),
-      kernel_cs);
+  SetIDTEntry(idt[InterruptVector::kXHCI], MakeIDTAttr(DescriptorType::kInterruptGate, 0),
+      reinterpret_cast<uint64_t>(IntHandlerXHCI), kernel_cs);
 
   // setup IDT
   LoadIDT(sizeof(idt) - 1, reinterpret_cast<uintptr_t>(&idt[0]));
 
   // setup msi interrupt to xhc
-  const uint8_t bsp_local_apic_id = *reinterpret_cast<const uint32_t*>(0xfee00020) >> 24;
+  const uint8_t bsp_local_apic_id =
+      *reinterpret_cast<const uint32_t*>(0xfee00020) >> 24;
   pci::ConfigureMSIFixedDestination(
       *xhc_dev, bsp_local_apic_id,
       pci::MSITriggerMode::kLevel, pci::MSIDeliveryMode::kFixed,
@@ -338,12 +339,14 @@ extern "C" void KernelMainNewStack(
                        .Move(mouse_position)
                        .ID();
 
+  // #@@range_begin(main_window_draggable)
   auto main_window_layer_id = layer_manager->NewLayer()
                                   .SetWindow(main_window)
                                   .SetDraggable(true)
                                   .Move({300, 100})
                                   .ID();
 
+  // #@@range_end(main_window_draggable)
   console->SetLayerID(layer_manager->NewLayer()
                           .SetWindow(console_window)
                           .Move({0, 0})

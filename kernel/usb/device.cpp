@@ -1,20 +1,20 @@
 #include "usb/device.hpp"
 
-#include "usb/descriptor.hpp"
-#include "usb/setupdata.hpp"
 #include "usb/classdriver/base.hpp"
 #include "usb/classdriver/keyboard.hpp"
 #include "usb/classdriver/mouse.hpp"
+#include "usb/descriptor.hpp"
+#include "usb/setupdata.hpp"
 
 #include "logger.hpp"
 
 namespace {
   class ConfigurationDescriptorReader {
-   public:
+  public:
     ConfigurationDescriptorReader(const uint8_t* desc_buf, int len)
-      : desc_buf_{desc_buf},
-        desc_buf_len_{len},
-        p_{desc_buf} {
+        : desc_buf_{desc_buf},
+          desc_buf_len_{len},
+          p_{desc_buf} {
     }
 
     const uint8_t* Next() {
@@ -35,7 +35,7 @@ namespace {
       return nullptr;
     }
 
-   private:
+  private:
     const uint8_t* const desc_buf_;
     const int desc_buf_len_;
     const uint8_t* p_;
@@ -44,9 +44,8 @@ namespace {
   usb::EndpointConfig MakeEPConfig(const usb::EndpointDescriptor& ep_desc) {
     usb::EndpointConfig conf;
     conf.ep_id = usb::EndpointID{
-      ep_desc.endpoint_address.bits.number,
-      ep_desc.endpoint_address.bits.dir_in == 1
-    };
+        ep_desc.endpoint_address.bits.number,
+        ep_desc.endpoint_address.bits.dir_in == 1};
     conf.ep_type = static_cast<usb::EndpointType>(ep_desc.attributes.bits.transfer_type);
     conf.max_packet_size = ep_desc.max_packet_size;
     conf.interval = ep_desc.interval;
@@ -55,7 +54,7 @@ namespace {
 
   usb::ClassDriver* NewClassDriver(usb::Device* dev, const usb::InterfaceDescriptor& if_desc) {
     if (if_desc.interface_class == 3 &&
-        if_desc.interface_sub_class == 1) {  // HID boot interface
+        if_desc.interface_sub_class == 1) {   // HID boot interface
       if (if_desc.interface_protocol == 1) {  // keyboard
         auto keyboard_driver = new usb::HIDKeyboardDriver{dev, if_desc.interface_number};
         if (usb::HIDKeyboardDriver::default_observer) {
@@ -81,7 +80,8 @@ namespace {
   }
 
   void Log(LogLevel level, const usb::EndpointConfig& conf) {
-    Log(level, "EndpointConf: ep_id=%d, ep_type=%d"
+    Log(level,
+        "EndpointConf: ep_id=%d, ep_type=%d"
         ", max_packet_size=%d, interval=%d\n",
         conf.ep_id.Address(), conf.ep_type,
         conf.max_packet_size, conf.interval);
@@ -98,22 +98,20 @@ namespace {
     }
     Log(level, "\n");
   }
-}
+}  // namespace
 
 namespace usb {
   Device::~Device() {
   }
 
-  Error Device::ControlIn(EndpointID ep_id, SetupData setup_data,
-                          void* buf, int len, ClassDriver* issuer) {
+  Error Device::ControlIn(EndpointID ep_id, SetupData setup_data, void* buf, int len, ClassDriver* issuer) {
     if (issuer) {
       event_waiters_.Put(setup_data, issuer);
     }
     return MAKE_ERROR(Error::kSuccess);
   }
 
-  Error Device::ControlOut(EndpointID ep_id, SetupData setup_data,
-                           const void* buf, int len, ClassDriver* issuer) {
+  Error Device::ControlOut(EndpointID ep_id, SetupData setup_data, const void* buf, int len, ClassDriver* issuer) {
     if (issuer) {
       event_waiters_.Put(setup_data, issuer);
     }
@@ -146,8 +144,7 @@ namespace usb {
     return MAKE_ERROR(Error::kSuccess);
   }
 
-  Error Device::OnControlCompleted(EndpointID ep_id, SetupData setup_data,
-                                   const void* buf, int len) {
+  Error Device::OnControlCompleted(EndpointID ep_id, SetupData setup_data, const void* buf, int len) {
     Log(kDebug, "Device::OnControlCompleted: buf 0x%08x, len %d, dir %d\n",
         buf, len, setup_data.request_type.bits.direction);
     if (is_initialized_) {
@@ -254,9 +251,7 @@ namespace usb {
     return MAKE_ERROR(Error::kSuccess);
   }
 
-  Error GetDescriptor(Device& dev, EndpointID ep_id,
-                      uint8_t desc_type, uint8_t desc_index,
-                      void* buf, int len, bool debug) {
+  Error GetDescriptor(Device& dev, EndpointID ep_id, uint8_t desc_type, uint8_t desc_index, void* buf, int len, bool debug) {
     SetupData setup_data{};
     setup_data.request_type.bits.direction = request_type::kIn;
     setup_data.request_type.bits.type = request_type::kStandard;
@@ -268,8 +263,7 @@ namespace usb {
     return dev.ControlIn(ep_id, setup_data, buf, len, nullptr);
   }
 
-  Error SetConfiguration(Device& dev, EndpointID ep_id,
-                         uint8_t config_value, bool debug) {
+  Error SetConfiguration(Device& dev, EndpointID ep_id, uint8_t config_value, bool debug) {
     SetupData setup_data{};
     setup_data.request_type.bits.direction = request_type::kOut;
     setup_data.request_type.bits.type = request_type::kStandard;
@@ -280,4 +274,4 @@ namespace usb {
     setup_data.length = 0;
     return dev.ControlOut(ep_id, setup_data, nullptr, 0, nullptr);
   }
-}
+}  // namespace usb

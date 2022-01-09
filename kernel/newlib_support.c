@@ -2,8 +2,7 @@
 #include <sys/types.h>
 
 void _exit(void) {
-  while (1)
-    __asm__("hlt");
+  while (1) __asm__("hlt");
 }
 
 caddr_t program_break, program_break_end;

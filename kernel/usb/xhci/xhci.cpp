@@ -2,9 +2,9 @@
 
 #include <cstring>
 #include "logger.hpp"
-#include "usb/setupdata.hpp"
-#include "usb/device.hpp"
 #include "usb/descriptor.hpp"
+#include "usb/device.hpp"
+#include "usb/setupdata.hpp"
 #include "usb/xhci/speed.hpp"
 
 namespace {
@@ -52,11 +52,11 @@ namespace {
 
   unsigned int DetermineMaxPacketSizeForControlPipe(unsigned int slot_speed) {
     switch (slot_speed) {
-    case 4: // Super Speed
+      case 4:  // Super Speed
         return 512;
-    case 3: // High Speed
+      case 3:  // High Speed
         return 64;
-    default:
+      default:
         return 8;
     }
   }
@@ -68,14 +68,15 @@ namespace {
 
     int msb_index;
     __asm__("bsr %1, %0"
-        : "=r"(msb_index) : "m"(value));
+            : "=r"(msb_index)
+            : "m"(value));
     return msb_index;
   }
 
   void InitializeEP0Context(EndpointContext& ctx,
                             Ring* transfer_ring,
                             unsigned int max_packet_size) {
-    ctx.bits.ep_type = 4; // Control Endpoint. Bidirectional.
+    ctx.bits.ep_type = 4;  // Control Endpoint. Bidirectional.
     ctx.bits.max_packet_size = max_packet_size;
     ctx.bits.max_burst_size = 0;
     ctx.SetTransferRingBuffer(transfer_ring->Buffer());
@@ -198,12 +199,12 @@ namespace {
     auto port = xhc.PortAt(port_id);
 
     switch (port_config_phase[port_id]) {
-    case ConfigPhase::kNotConnected:
-      return ResetPort(xhc, port);
-    case ConfigPhase::kResettingPort:
-      return EnableSlot(xhc, port);
-    default:
-      return MAKE_ERROR(Error::kInvalidPhase);
+      case ConfigPhase::kNotConnected:
+        return ResetPort(xhc, port);
+      case ConfigPhase::kResettingPort:
+        return EnableSlot(xhc, port);
+      default:
+        return MAKE_ERROR(Error::kInvalidPhase);
     }
   }
 
@@ -282,7 +283,7 @@ namespace {
   }
 
   void RequestHCOwnership(uintptr_t mmio_base, HCCPARAMS1_Bitmap hccp) {
-    ExtendedRegisterList extregs{ mmio_base, hccp };
+    ExtendedRegisterList extregs{mmio_base, hccp};
 
     auto ext_usblegsup = std::find_if(
         extregs.begin(), extregs.end(),
@@ -293,7 +294,7 @@ namespace {
     }
 
     auto& reg =
-      reinterpret_cast<MemMapRegister<USBLEGSUP_Bitmap>&>(*ext_usblegsup);
+        reinterpret_cast<MemMapRegister<USBLEGSUP_Bitmap>&>(*ext_usblegsup);
     auto r = reg.Read();
     if (r.bits.hc_os_owned_semaphore) {
       return;
@@ -309,7 +310,7 @@ namespace {
              !r.bits.hc_os_owned_semaphore);
     Log(kDebug, "OS has owned xHC\n");
   }
-}
+}  // namespace
 
 namespace usb::xhci {
 
@@ -339,14 +340,17 @@ namespace usb::xhci {
     }
 
     op_->USBCMD.Write(usbcmd);
-    while (!op_->USBSTS.Read().bits.host_controller_halted);
+    while (!op_->USBSTS.Read().bits.host_controller_halted)
+      ;
 
     // Reset controller
     usbcmd = op_->USBCMD.Read();
     usbcmd.bits.host_controller_reset = true;
     op_->USBCMD.Write(usbcmd);
-    while (op_->USBCMD.Read().bits.host_controller_reset);
-    while (op_->USBSTS.Read().bits.controller_not_ready);
+    while (op_->USBCMD.Read().bits.host_controller_reset)
+      ;
+    while (op_->USBSTS.Read().bits.controller_not_ready)
+      ;
 
     Log(kDebug, "MaxSlots: %u\n", cap_->HCSPARAMS1.Read().bits.max_device_slots);
     // Set "Max Slots Enabled" field in CONFIG.
@@ -356,8 +360,7 @@ namespace usb::xhci {
 
     auto hcsparams2 = cap_->HCSPARAMS2.Read();
     const uint16_t max_scratchpad_buffers =
-      hcsparams2.bits.max_scratchpad_buffers_low
-      | (hcsparams2.bits.max_scratchpad_buffers_high << 5);
+        hcsparams2.bits.max_scratchpad_buffers_low | (hcsparams2.bits.max_scratchpad_buffers_high << 5);
     if (max_scratchpad_buffers > 0) {
       auto scratchpad_buf_arr = AllocArray<void*>(max_scratchpad_buffers, 64, 4096);
       for (int i = 0; i < max_scratchpad_buffers; ++i) {
@@ -376,12 +379,13 @@ namespace usb::xhci {
 
     auto primary_interrupter = &InterrupterRegisterSets()[0];
     if (auto err = cr_.Initialize(32)) {
-        return err;
+      return err;
     }
     if (auto err = RegisterCommandRing(&cr_, &op_->CRCR)) {
-        return err; }
+      return err;
+    }
     if (auto err = er_.Initialize(32, primary_interrupter)) {
-        return err;
+      return err;
     }
 
     // Enable interrupt for the primary interrupter
@@ -405,7 +409,8 @@ namespace usb::xhci {
     op_->USBCMD.Write(usbcmd);
     op_->USBCMD.Read();
 
-    while (op_->USBSTS.Read().bits.host_controller_halted);
+    while (op_->USBSTS.Read().bits.host_controller_halted)
+      ;
 
     return MAKE_ERROR(Error::kSuccess);
   }
@@ -438,31 +443,33 @@ namespace usb::xhci {
     }
 
     auto convert_interval{
-      (port_speed == kFullSpeed || port_speed == kLowSpeed)
-      ? [](EndpointType type, int interval) { // for FS, LS
-        if (type == EndpointType::kIsochronous) return interval + 2;
-        else return MostSignificantBit(interval) + 3;
-      }
-      : [](EndpointType type, int interval) { // for HS, SS, SSP
-        return interval - 1;
-      }};
+        (port_speed == kFullSpeed || port_speed == kLowSpeed)
+            ? [](EndpointType type, int interval) {  // for FS, LS
+                if (type == EndpointType::kIsochronous)
+                  return interval + 2;
+                else
+                  return MostSignificantBit(interval) + 3;
+              }
+            : [](EndpointType type, int interval) {  // for HS, SS, SSP
+                return interval - 1;
+              }};
 
     for (int i = 0; i < len; ++i) {
       const DeviceContextIndex ep_dci{configs[i].ep_id};
       auto ep_ctx = dev.InputContext()->EnableEndpoint(ep_dci);
       switch (configs[i].ep_type) {
-      case EndpointType::kControl:
-        ep_ctx->bits.ep_type = 4;
-        break;
-      case EndpointType::kIsochronous:
-        ep_ctx->bits.ep_type = configs[i].ep_id.IsIn() ? 5 : 1;
-        break;
-      case EndpointType::kBulk:
-        ep_ctx->bits.ep_type = configs[i].ep_id.IsIn() ? 6 : 2;
-        break;
-      case EndpointType::kInterrupt:
-        ep_ctx->bits.ep_type = configs[i].ep_id.IsIn() ? 7 : 3;
-        break;
+        case EndpointType::kControl:
+          ep_ctx->bits.ep_type = 4;
+          break;
+        case EndpointType::kIsochronous:
+          ep_ctx->bits.ep_type = configs[i].ep_id.IsIn() ? 5 : 1;
+          break;
+        case EndpointType::kBulk:
+          ep_ctx->bits.ep_type = configs[i].ep_id.IsIn() ? 6 : 2;
+          break;
+        case EndpointType::kInterrupt:
+          ep_ctx->bits.ep_type = configs[i].ep_id.IsIn() ? 7 : 3;
+          break;
       }
       ep_ctx->bits.max_packet_size = configs[i].max_packet_size;
       ep_ctx->bits.interval = convert_interval(configs[i].ep_type, configs[i].interval);
@@ -504,4 +511,4 @@ namespace usb::xhci {
 
     return err;
   }
-}
+}  // namespace usb::xhci

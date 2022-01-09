@@ -8,20 +8,20 @@ section .text
 
 global IoOut32  ; void IoOut32(uint16_t addr, uint32_t data);
 IoOut32:
-	mov dx, di   ; dx  = addr
-	mov eax, esi ; eax = data
+    mov dx, di    ; dx = addr
+    mov eax, esi  ; eax = data
 	out dx, eax
 	ret
 
 global IoIn32  ; uint32_t IoIn32(uint16_t addr);
 IoIn32:
-	mov dx, di ; dx = addr
+	mov dx, di    ; dx = addr
 	in eax, dx
 	ret
 
 global GetCS  ; uint16_t GetCS(void);
 GetCS:
-	xor eax, eax ; also clears upper 32 bits of rax
+	xor eax, eax  ; also clears upper 32 bits of rax
 	mov ax, cs
 	ret
 
@@ -30,8 +30,8 @@ LoadIDT:
 	push rbp
 	mov rbp, rsp
 	sub rsp, 10
-	mov [rsp], di ; limit
-	mov [rsp +2], rsi ; offset
+	mov [rsp], di  ; limit
+	mov [rsp + 2], rsi  ; offset
 	lidt [rsp]
 	mov rsp, rbp
 	pop rbp
@@ -42,8 +42,8 @@ LoadGDT:
 	push rbp
 	mov rbp, rsp
 	sub rsp, 10
-	mov [rsp], di ; limit
-	mov [rsp + 2], rsi ; offset
+	mov [rsp], di  ; limit
+	mov [rsp + 2], rsi  ; offset
 	lgdt [rsp]
 	mov rsp, rbp
 	pop rbp
@@ -55,8 +55,8 @@ SetCSSS:
 	mov rbp, rsp
 	mov ss, si
 	mov rax, .next
-	push rdi       ; CS
-	push rax       ; RIP
+	push rdi    ; CS
+	push rax    ; RIP
 	o64 retf
 .next:
 	mov rsp, rbp

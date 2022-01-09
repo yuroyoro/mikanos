@@ -74,7 +74,7 @@ namespace {
       Log(level, *setup_trb);
     }
   }
-}
+}  // namespace
 
 namespace usb::xhci {
   Device::Device(uint8_t slot_id, DoorbellRegister* dbreg)
@@ -104,8 +104,7 @@ namespace usb::xhci {
     return tr;
   }
 
-  Error Device::ControlIn(EndpointID ep_id, SetupData setup_data,
-                          void* buf, int len, ClassDriver* issuer) {
+  Error Device::ControlIn(EndpointID ep_id, SetupData setup_data, void* buf, int len, ClassDriver* issuer) {
     if (auto err = usb::Device::ControlIn(ep_id, setup_data, buf, len, issuer)) {
       return err;
     }
@@ -129,7 +128,7 @@ namespace usb::xhci {
 
     if (buf) {
       auto setup_trb_position = TRBDynamicCast<SetupStageTRB>(tr->Push(
-            MakeSetupStageTRB(setup_data, SetupStageTRB::kInDataStage)));
+          MakeSetupStageTRB(setup_data, SetupStageTRB::kInDataStage)));
       auto data = MakeDataStageTRB(buf, len, true);
       data.bits.interrupt_on_completion = true;
       auto data_trb_position = tr->Push(data);
@@ -138,7 +137,7 @@ namespace usb::xhci {
       setup_stage_map_.Put(data_trb_position, setup_trb_position);
     } else {
       auto setup_trb_position = TRBDynamicCast<SetupStageTRB>(tr->Push(
-            MakeSetupStageTRB(setup_data, SetupStageTRB::kNoDataStage)));
+          MakeSetupStageTRB(setup_data, SetupStageTRB::kNoDataStage)));
       status.bits.direction = true;
       status.bits.interrupt_on_completion = true;
       auto status_trb_position = tr->Push(status);
@@ -151,8 +150,7 @@ namespace usb::xhci {
     return MAKE_ERROR(Error::kSuccess);
   }
 
-  Error Device::ControlOut(EndpointID ep_id, SetupData setup_data,
-                           const void* buf, int len, ClassDriver* issuer) {
+  Error Device::ControlOut(EndpointID ep_id, SetupData setup_data, const void* buf, int len, ClassDriver* issuer) {
     if (auto err = usb::Device::ControlOut(ep_id, setup_data, buf, len, issuer)) {
       return err;
     }
@@ -177,7 +175,7 @@ namespace usb::xhci {
 
     if (buf) {
       auto setup_trb_position = TRBDynamicCast<SetupStageTRB>(tr->Push(
-            MakeSetupStageTRB(setup_data, SetupStageTRB::kOutDataStage)));
+          MakeSetupStageTRB(setup_data, SetupStageTRB::kOutDataStage)));
       auto data = MakeDataStageTRB(buf, len, false);
       data.bits.interrupt_on_completion = true;
       auto data_trb_position = tr->Push(data);
@@ -186,7 +184,7 @@ namespace usb::xhci {
       setup_stage_map_.Put(data_trb_position, setup_trb_position);
     } else {
       auto setup_trb_position = TRBDynamicCast<SetupStageTRB>(tr->Push(
-            MakeSetupStageTRB(setup_data, SetupStageTRB::kNoDataStage)));
+          MakeSetupStageTRB(setup_data, SetupStageTRB::kNoDataStage)));
       status.bits.interrupt_on_completion = true;
       auto status_trb_position = tr->Push(status);
 
@@ -245,7 +243,7 @@ namespace usb::xhci {
     TRB* issuer_trb = trb.Pointer();
     if (auto normal_trb = TRBDynamicCast<NormalTRB>(issuer_trb)) {
       const auto transfer_length =
-        normal_trb->bits.trb_transfer_length - residual_length;
+          normal_trb->bits.trb_transfer_length - residual_length;
       return this->OnInterruptCompleted(
           trb.EndpointID(), normal_trb->Pointer(), transfer_length);
     }
@@ -274,7 +272,7 @@ namespace usb::xhci {
     if (auto data_stage_trb = TRBDynamicCast<DataStageTRB>(issuer_trb)) {
       data_stage_buffer = data_stage_trb->Pointer();
       transfer_length =
-        data_stage_trb->bits.trb_transfer_length - residual_length;
+          data_stage_trb->bits.trb_transfer_length - residual_length;
     } else if (auto status_stage_trb = TRBDynamicCast<StatusStageTRB>(issuer_trb)) {
       // pass
     } else {
@@ -283,4 +281,4 @@ namespace usb::xhci {
     return this->OnControlCompleted(
         trb.EndpointID(), setup_data, data_stage_buffer, transfer_length);
   }
-}
+}  // namespace usb::xhci

@@ -6,4 +6,4 @@ namespace usb {
 
   ClassDriver::~ClassDriver() {
   }
-}
+}  // namespace usb

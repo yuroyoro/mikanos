@@ -22,6 +22,7 @@ Vector2D<int> Layer::GetPosition() const {
   return pos_;
 }
 
+// #@@range_begin(set_draggable)
 Layer& Layer::SetDraggable(bool draggable) {
   draggable_ = draggable;
   return *this;
@@ -30,6 +31,7 @@ Layer& Layer::SetDraggable(bool draggable) {
 bool Layer::IsDraggable() const {
   return draggable_;
 }
+// #@@range_end(set_draggable)
 
 Layer& Layer::Move(Vector2D<int> pos) {
   pos_ = pos;
@@ -50,7 +52,7 @@ void Layer::DrawTo(FrameBuffer& screen, const Rectangle<int>& area) const {
 void LayerManager::SetWriter(FrameBuffer* screen) {
   screen_ = screen;
 
-  FrameBufferConfig back_config = screen_->Config();
+  FrameBufferConfig back_config = screen->Config();
   back_config.frame_buffer = nullptr;
   back_buffer_.Initialize(back_config);
 }
@@ -135,9 +137,9 @@ void LayerManager::Hide(unsigned int id) {
   }
 }
 
-Layer* LayerManager::FindLayerByPosition(Vector2D<int> pos, unsigned int exclued_id) const {
-  auto pred = [pos, exclued_id](Layer* layer) {
-    if (layer->ID() == exclued_id) {
+Layer* LayerManager::FindLayerByPosition(Vector2D<int> pos, unsigned int exclude_id) const {
+  auto pred = [pos, exclude_id](Layer* layer) {
+    if (layer->ID() == exclude_id) {
       return false;
     }
     const auto& win = layer->GetWindow();
